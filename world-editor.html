@@ -12,8 +12,7 @@
         var effective = (theme === 'system' || !theme)
           ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : theme;
-        if (effective === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-        else document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', effective);
       } catch(e) {}
     })();
   </script>
@@ -24,7 +23,7 @@
     <!-- Desktop Navigation Rail -->
     <md-navigation-rail class="desktop-nav-rail" alignment="top">
       <div slot="header" style="padding: 12px 0; text-align: center;">
-        <md-icon name="auto_stories" size="32" style="color: var(--md-sys-color-primary);"></md-icon>
+        <md-icon name="auto_stories" size="32"></md-icon>
       </div>
 
       <md-navigation-rail-item icon="auto_stories" label="Play" value="play"></md-navigation-rail-item>
@@ -42,7 +41,7 @@
         <!-- AI Prompt Box at the Top -->
         <div class="surface-card" style="border: 1px solid var(--md-sys-color-primary); background: linear-gradient(135deg, var(--md-sys-color-surface-container-low), var(--md-sys-color-surface-container));">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <md-icon name="auto_awesome" style="color: var(--md-sys-color-primary);"></md-icon>
+            <md-icon name="auto_awesome"></md-icon>
             <h2 class="title-medium" style="color: var(--md-sys-color-primary);">World Generator</h2>
           </div>
           <p style="font-size: 14px; margin-bottom: 16px; color: var(--md-sys-color-secondary);">
@@ -88,7 +87,7 @@
         </div>
 
         <div id="worlds-empty-state" class="surface-card" style="display: none; text-align: center; padding: 48px 20px;">
-          <md-icon name="travel_explore" size="48" style="color: var(--md-sys-color-secondary); margin-bottom: 12px;"></md-icon>
+          <md-icon name="travel_explore" size="48" style="margin-bottom: 12px;"></md-icon>
           <h3 class="title-small">No Worlds Found</h3>
           <p style="color: var(--md-sys-color-secondary); margin-bottom: 16px;">Create your first world or use the generator above!</p>
         </div>

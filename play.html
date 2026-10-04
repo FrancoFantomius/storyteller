@@ -12,8 +12,7 @@
         var effective = (theme === 'system' || !theme)
           ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : theme;
-        if (effective === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-        else document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', effective);
       } catch(e) {}
     })();
   </script>
@@ -24,7 +23,7 @@
     <!-- Desktop Navigation Rail -->
     <md-navigation-rail class="desktop-nav-rail" alignment="top" active-index="0">
       <div slot="header" style="padding: 12px 0; text-align: center;">
-        <md-icon name="auto_stories" size="32" style="color: var(--md-sys-color-primary);"></md-icon>
+        <md-icon name="auto_stories" size="32"></md-icon>
       </div>
 
       <md-navigation-rail-item icon="auto_stories" label="Play" value="play" active></md-navigation-rail-item>

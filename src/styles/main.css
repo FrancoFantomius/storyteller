@@ -42,6 +42,7 @@
   --md-sys-color-on-tertiary-container: #31111D;
   --md-sys-color-surface: #FEF7FF;
   --md-sys-color-on-surface: #1D1B20;
+  --md-sys-color-on-surface-variant: #49454F;
   --md-sys-color-surface-container-lowest: #FFFFFF;
   --md-sys-color-surface-container-low: #F7F2FA;
   --md-sys-color-surface-container: #F3EDF7;
@@ -53,6 +54,8 @@
   --md-sys-color-on-error: #FFFFFF;
   --md-sys-color-error-container: #F9DEDC;
   --md-sys-color-on-error-container: #410E0B;
+  --md-sys-color-inverse-surface: #313033;
+  --md-sys-color-inverse-on-surface: #F4EFF4;
 
   --md-sys-shape-corner-small: 8px;
   --md-sys-shape-corner-medium: 12px;
@@ -79,6 +82,7 @@
   --md-sys-color-on-tertiary-container: #FFD8E4;
   --md-sys-color-surface: #141218;
   --md-sys-color-on-surface: #E6E0E9;
+  --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface);
   --md-sys-color-surface-container-lowest: #0F0D13;
   --md-sys-color-surface-container-low: #1D1B20;
   --md-sys-color-surface-container: #211F26;
@@ -90,6 +94,96 @@
   --md-sys-color-on-error: #601410;
   --md-sys-color-error-container: #8C1D18;
   --md-sys-color-on-error-container: #F9DEDC;
+  --md-sys-color-inverse-surface: #E6E0E9;
+  --md-sys-color-inverse-on-surface: #313033;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --md-sys-color-primary: #D0BCFF;
+    --md-sys-color-on-primary: #381E72;
+    --md-sys-color-primary-container: #4F378B;
+    --md-sys-color-on-primary-container: #EADDFF;
+    --md-sys-color-secondary: #CCC2DC;
+    --md-sys-color-on-secondary: #332D41;
+    --md-sys-color-secondary-container: #4A4458;
+    --md-sys-color-on-secondary-container: #E8DEF8;
+    --md-sys-color-tertiary: #EFB8C8;
+    --md-sys-color-on-tertiary: #492532;
+    --md-sys-color-tertiary-container: #633B48;
+    --md-sys-color-on-tertiary-container: #FFD8E4;
+    --md-sys-color-surface: #141218;
+    --md-sys-color-on-surface: #E6E0E9;
+    --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface);
+    --md-sys-color-surface-container-lowest: #0F0D13;
+    --md-sys-color-surface-container-low: #1D1B20;
+    --md-sys-color-surface-container: #211F26;
+    --md-sys-color-surface-container-high: #2B2930;
+    --md-sys-color-surface-container-highest: #36343B;
+    --md-sys-color-outline: #938F99;
+    --md-sys-color-outline-variant: #49454F;
+    --md-sys-color-error: #F2B8B5;
+    --md-sys-color-on-error: #601410;
+    --md-sys-color-error-container: #8C1D18;
+    --md-sys-color-on-error-container: #F9DEDC;
+    --md-sys-color-inverse-surface: #E6E0E9;
+    --md-sys-color-inverse-on-surface: #313033;
+  }
+}
+
+/* Dark mode icon font color synchronization */
+[data-theme='dark'] md-icon,
+[data-theme='dark'] .material-symbols-outlined {
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+[data-theme='dark'] md-icon-button {
+  --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface) !important;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+[data-theme='dark'] md-chip {
+  --md-sys-color-primary: var(--md-sys-color-on-surface) !important;
+}
+
+[data-theme='dark'] md-dialog {
+  --md-sys-color-secondary: var(--md-sys-color-on-surface) !important;
+}
+
+[data-theme='dark'] md-navigation-rail-item,
+[data-theme='dark'] md-navigation-bar-item {
+  --md-navigation-rail-label-color: var(--md-sys-color-on-surface) !important;
+  --md-navigation-bar-item-label-color: var(--md-sys-color-on-surface) !important;
+  --md-navigation-bar-item-icon-color: var(--md-sys-color-on-surface) !important;
+  --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) md-icon,
+  :root:not([data-theme='light']) .material-symbols-outlined {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  :root:not([data-theme='light']) md-icon-button {
+    --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface) !important;
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  :root:not([data-theme='light']) md-chip {
+    --md-sys-color-primary: var(--md-sys-color-on-surface) !important;
+  }
+
+  :root:not([data-theme='light']) md-dialog {
+    --md-sys-color-secondary: var(--md-sys-color-on-surface) !important;
+  }
+
+  :root:not([data-theme='light']) md-navigation-rail-item,
+  :root:not([data-theme='light']) md-navigation-bar-item {
+    --md-navigation-rail-label-color: var(--md-sys-color-on-surface) !important;
+    --md-navigation-bar-item-label-color: var(--md-sys-color-on-surface) !important;
+    --md-navigation-bar-item-icon-color: var(--md-sys-color-on-surface) !important;
+    --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface) !important;
+  }
 }
 
 * {
@@ -168,6 +262,83 @@ body {
   border-radius: var(--md-sys-shape-corner-large);
   border: 1px solid var(--md-sys-color-outline-variant);
   padding: 16px 18px;
+}
+
+/* Settings Divided Sections Layout (No bubble wrappers) */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.settings-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-section-subtext {
+  font-size: 13px;
+  color: var(--md-sys-color-secondary);
+  line-height: 1.4;
+  margin: 0;
+  width: 100%;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.setting-item-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.setting-item-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.setting-title {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.setting-subtext {
+  font-size: 13px;
+  color: var(--md-sys-color-secondary);
+  line-height: 1.4;
+}
+
+/* Full Width Centered Segmented Button Set */
+md-segmented-button-set.full-width,
+#theme-segmented-set {
+  display: flex !important;
+  width: 100% !important;
+}
+
+md-segmented-button-set.full-width md-segmented-button,
+#theme-segmented-set md-segmented-button {
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  text-align: center !important;
 }
 
 /* Turn Page Container */

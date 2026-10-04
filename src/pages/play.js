@@ -251,7 +251,7 @@ function renderHomeView() {
   if (!campaigns || campaigns.length === 0) {
     container.innerHTML = `
       <div class="surface-card" style="text-align: center; padding: 48px 24px;">
-        <md-icon name="auto_stories" size="48" style="color: var(--md-sys-color-primary); margin-bottom: 16px;"></md-icon>
+        <md-icon name="auto_stories" size="48" style="margin-bottom: 16px;"></md-icon>
         <h3 class="title-small" style="margin-bottom: 8px;">No Played Stories Yet</h3>
         <p style="font-size: 14px; color: var(--md-sys-color-secondary); max-width: 440px; margin: 0 auto 20px;">
           You don't have any ongoing campaigns. Tap the plus button below to choose a world, select your character, and begin roll 1!
@@ -523,7 +523,7 @@ function renderWorldSelectionStep(container) {
     if (filtered.length === 0) {
       grid.innerHTML = `
         <div class="surface-card" style="text-align: center; padding: 36px 20px; grid-column: 1 / -1;">
-          <md-icon name="search_off" size="44" style="color: var(--md-sys-color-secondary); margin-bottom: 10px;"></md-icon>
+          <md-icon name="search_off" size="44" style="margin-bottom: 10px;"></md-icon>
           <h3 class="title-small">No Worlds Found</h3>
           <p style="color: var(--md-sys-color-secondary); margin-top: 4px; font-size: 13px;">No worlds match your current search query or tag filter.</p>
           <md-button id="clear-filters-btn" variant="tonal" icon="filter_alt_off" style="margin-top: 14px;">Clear Filters</md-button>
@@ -715,7 +715,7 @@ function renderCharacterSelectionStep(container, world) {
               ${escapeHtml(char.role || 'Adventurer')}
             </span>
           </div>
-          <md-icon name="person" style="color: var(--md-sys-color-primary);"></md-icon>
+          <md-icon name="person"></md-icon>
         </div>
 
         <p style="font-size: 13px; line-height: 1.5; color: var(--md-sys-color-on-surface); margin: 10px 0 16px 0;">
