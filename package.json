@@ -1,13 +1,15 @@
 {
   "name": "storyteller",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "download:models": "python download_models.py",
+    "clean": "git clean -fdX"
   },
   "dependencies": {
     "@fontsource-variable/material-symbols-outlined": "^5.3.8",

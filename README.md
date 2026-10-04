@@ -75,7 +75,11 @@ The application is composed of three primary services:
    cp .env.example .env
    ```
 
-2. Place your GGUF language model into `models/llm/` (for example, `models/llm/model.gguf`).
+2. Download the models on demand to your host machine:
+   ```bash
+   python download_models.py --all
+   ```
+   *(Or for Ollama: `ollama pull dolphin-mistral:7b`)*
 
 3. Start all services:
    ```bash
@@ -84,23 +88,31 @@ The application is composed of three primary services:
 
 4. Open `http://localhost:8000` in a web browser.
 
+> [!NOTE]
+> All world data (`server/worlds/`), saved campaigns (`server/campaigns/`), generated images (`server/generated_images/`), and model weights (`models/` & `hf_cache/`) are mounted from the user machine outside Docker so all changes and downloads persist on host.
+
 ### Manual Development Setup
 
-#### 1. Backend Server
+#### 1. Download Models
+```bash
+python download_models.py --all
+```
+
+#### 2. Backend Server
 ```bash
 pip install -r requirements.txt
 python server/server.py
 ```
 The backend starts on `http://localhost:8000`.
 
-#### 2. Frontend Development Server
+#### 3. Frontend Development Server
 ```bash
 npm install
 npm run dev
 ```
 The Vite development server runs on `http://localhost:5173` with API requests proxied to the backend.
 
-#### 3. Image Generation Service (Optional)
+#### 4. Image Generation Service (Optional)
 ```bash
 cd services/diffusers
 pip install -r requirements.txt
@@ -117,7 +129,10 @@ Environment variables can be defined in `.env` or passed via Docker Compose:
 | `PORT` | HTTP port for the main application server | `8000` |
 | `LLM_HOST` | URL of the OpenAI-compatible or llama.cpp endpoint | `http://llama-cpp:8080` |
 | `DIFFUSERS_HOST` | URL of the diffusers image generation microservice | `http://diffusers:8001` |
-| `LLAMA_MODEL_FILENAME` | File name of the GGUF model inside `./models/llm/` | `model.gguf` |
+| `OLLAMA_MODEL` | Default model tag for Ollama | `dolphin-mistral:7b` |
+| `LLAMA_MODEL_FILENAME` | File name of the GGUF model inside `./models/llm/` | `dolphin-2.8-mistral-7b-v02.Q4_K_M.gguf` |
+| `DIFFUSERS_MODEL_ID` | HuggingFace model repo or local directory for Diffusers | `stabilityai/sd-turbo` |
+
 | `LLAMA_CTX_SIZE` | Context window length for llama.cpp | `4096` |
 | `LLAMA_N_GPU_LAYERS` | Number of layers to offload to GPU in llama.cpp | `99` |
 | `DIFFUSERS_MODEL_ID` | Hugging Face repository ID or path for image generation | `stabilityai/sd-turbo` |

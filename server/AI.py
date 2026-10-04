@@ -260,7 +260,7 @@ async def generate_story_turn_endpoint(payload: StoryTurnPayload):
         target_host = payload.host or DEFAULT_OLLAMA_HOST
         target_url = f"{target_host.rstrip('/')}/api/chat"
         req_body = {
-            "model": "llama3:latest",
+            "model": os.environ.get("OLLAMA_MODEL", "dolphin-mistral:7b"),
             "messages": messages,
             "stream": True,
             "options": {

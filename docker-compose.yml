@@ -11,6 +11,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      # Mount host LLM models folder into container
       - ./models/llm:/models:ro
     environment:
       # AMD GPU Arch Override (e.g. 11.0.0 for RX 7000, 10.3.0 for RX 6000)
@@ -28,7 +29,7 @@ services:
     command: >
       --host 0.0.0.0
       --port 8080
-      -m /models/${LLAMA_MODEL_FILENAME:-model.gguf}
+      -m /models/${LLAMA_MODEL_FILENAME:-dolphin-2.8-mistral-7b-v02.Q4_K_M.gguf}
       -ngl ${LLAMA_N_GPU_LAYERS:-99}
       -c ${LLAMA_CTX_SIZE:-4096}
       --cont-batching
@@ -45,6 +46,7 @@ services:
     ports:
       - "8001:8001"
     volumes:
+      # Mount host diffusers models and HuggingFace cache
       - ./models/diffusers:/models
       - ./hf_cache:/root/.cache/huggingface
     environment:
@@ -74,6 +76,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      # Mount server subfolders so all user data persists on the host machine
       - ./server/worlds:/app/server/worlds
       - ./server/campaigns:/app/server/campaigns
       - ./server/generated_images:/app/server/generated_images
@@ -82,6 +85,7 @@ services:
       - PORT=8000
       - LLM_HOST=http://llama-cpp:8080
       - DIFFUSERS_HOST=http://diffusers:8001
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-dolphin-mistral:7b}
     depends_on:
       - llama-cpp
       - diffusers

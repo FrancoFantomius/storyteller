@@ -41,7 +41,7 @@ function populateSettingsForm() {
   if (ollamaHostInput) ollamaHostInput.value = settings.ollamaHost || 'http://localhost:11434';
 
   const ollamaModelInput = document.getElementById('ollama-model-input');
-  if (ollamaModelInput) ollamaModelInput.value = settings.ollamaModel || 'llama3:latest';
+  if (ollamaModelInput) ollamaModelInput.value = settings.ollamaModel || 'dolphin-mistral:7b';
 
   // 2. Image Provider Segmented Set
   const currentImgProvider = settings.imageProvider || (settings.generateArt !== false ? 'diffusers' : 'none');
