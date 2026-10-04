@@ -1,200 +1,89 @@
-// Ollama Inference and Dynamic Storyteller Engine
+// Storyteller AI Narrative Generation Engine
 import { getSettings } from './storage.js';
 
 /**
- * Builds the AI system prompt with world lore, logic rules, character data and storytelling guidelines
- */
-export function buildSystemPrompt(world, activeCharacter) {
-  const settings = getSettings();
-  const logicRules = (world.logic || []).map((rule, idx) => `${idx + 1}. ${rule}`).join('\n');
-  const npcs = (world.characters || [])
-    .filter(c => c.type === 'npc')
-    .map(npc => `- ${npc.name} (${npc.role}, Faction: ${npc.faction || 'None'}): ${npc.bio || ''} [Secret: ${npc.secret || 'None'}]`)
-    .join('\n');
-
-  return `You are the master Narrator of an interactive choose-your-own-adventure story set in "${world.name}".
-Genre: ${world.genre || 'Adventure'}
-Narrative Tone: ${world.tone || settings.narrativeTone || 'Rich and immersive'}
-
-WORLD SETTING & LORE:
-${world.setting || world.description || 'A mysterious realm.'}
-
-IMMUTABLE WORLD LOGIC RULES (You must strictly obey these rules without exception):
-${logicRules || 'None specified.'}
-
-KEY NPCS IN THIS WORLD:
-${npcs || 'None specified.'}
-
-ACTIVE PLAYER CHARACTER:
-Name: ${activeCharacter.name}
-Role/Archetype: ${activeCharacter.role || 'Adventurer'}
-Bio: ${activeCharacter.bio || ''}
-Equipment: ${(activeCharacter.equipment || []).join(', ')}
-
-INSTRUCTIONS FOR STORYTELLING:
-1. Deliver vivid, atmospheric, second-person narrative ("You...").
-2. Respect player freedom completely—the player can attempt anything, say anything, or direct how the world changes.
-3. React realistically according to the World Logic Rules and the active character's context.
-4. End every narrative response with high engagement, presenting dramatic consequences or open opportunities.
-5. Provide 3 or 4 clear, compelling suggested next actions formatted at the very end under "**Suggestions:**" as numbered lines without any emojis.`;
-}
-
-/**
- * Generates next story turn using Ollama streaming or intelligent simulation fallback
+ * Generates next story turn using the Python backend (which builds the prompt from system.txt) or simulation fallback
  */
 export async function generateStoryTurn({ world, campaign, userInput, activeCharacter, onToken }) {
   const settings = getSettings();
-  const systemPrompt = buildSystemPrompt(world, activeCharacter);
-  const formattedUserPrompt = `${userInput.trim()}\n\nContinue the narrative based on this input. Describe what happens next.`;
-
   let aiWorked = false;
   let fullGeneratedText = '';
 
   const provider = settings.llmProvider || 'llamacpp';
 
-  // 1. Try llama.cpp (OpenAI compatible SSE stream)
-  if (provider === 'llamacpp') {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+  // 1. Primary: Call Python backend endpoint /api/ai/story-turn (uses system.txt)
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
-      const historyMessages = (campaign.history || []).slice(-8).map(h => {
-        if (h.type === 'narrative') {
-          return { role: 'assistant', content: h.text };
-        } else {
-          return { role: 'user', content: h.text };
-        }
-      });
+    const res = await fetch('/api/ai/story-turn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        world: world,
+        activeCharacter: activeCharacter,
+        userInput: userInput,
+        campaignHistory: (campaign.history || []).slice(-8),
+        provider: provider,
+        host: provider === 'llamacpp' ? settings.llamaCppHost : settings.ollamaHost,
+        temperature: settings.temperature || 0.7,
+        topP: settings.topP || 0.9,
+        maxTokens: settings.maxTokens || 600,
+        narrativeTone: settings.narrativeTone || 'Epic and richly descriptive',
+      }),
+      signal: controller.signal,
+    });
 
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...historyMessages,
-        { role: 'user', content: formattedUserPrompt },
-      ];
+    clearTimeout(timeout);
 
-      const host = settings.llamaCppHost || 'http://localhost:8080';
-      const res = await fetch(`${host.rstrip ? host.rstrip('/') : host.replace(/\/$/, '')}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messages,
-          stream: true,
-          temperature: settings.temperature || 0.7,
-          top_p: settings.topP || 0.9,
-          max_tokens: settings.maxTokens || 600,
-        }),
-        signal: controller.signal,
-      });
+    if (res.ok && res.body) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
 
-      clearTimeout(timeout);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // Keep last partial line in buffer
 
-      if (res.ok && res.body) {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop(); // Keep last partial line in buffer
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('data: ')) {
-              const dataStr = trimmed.slice(6);
-              if (dataStr === '[DONE]') continue;
-              try {
-                const parsed = JSON.parse(dataStr);
-                const delta = parsed.choices?.[0]?.delta?.content;
-                if (delta) {
-                  fullGeneratedText += delta;
-                  if (onToken) onToken(delta, fullGeneratedText);
-                }
-              } catch (e) {
-                // Ignore partial json parse error
-              }
-            }
-          }
-        }
-
-        if (fullGeneratedText.trim().length > 10) {
-          aiWorked = true;
-        }
-      }
-    } catch (err) {
-      console.warn('llama.cpp connection unavailable or timed out. Trying fallback.', err);
-    }
-  }
-
-  // 2. Try Ollama (ndjson stream) if configured or if llama.cpp failed
-  if (!aiWorked && (provider === 'ollama' || !settings.llamaCppHost)) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-
-      const historyMessages = (campaign.history || []).slice(-8).map(h => {
-        if (h.type === 'narrative') {
-          return { role: 'assistant', content: h.text };
-        } else {
-          return { role: 'user', content: h.text };
-        }
-      });
-
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...historyMessages,
-        { role: 'user', content: formattedUserPrompt },
-      ];
-
-      const res = await fetch(`${settings.ollamaHost}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: settings.ollamaModel || 'llama3:latest',
-          messages: messages,
-          stream: true,
-          options: {
-            temperature: settings.temperature || 0.7,
-            top_p: settings.topP || 0.9,
-            num_ctx: settings.contextSize || 4096,
-          },
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok && res.body) {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n').filter(Boolean);
-          for (const line of lines) {
+          // Handle SSE stream (from llama.cpp or backend SSE)
+          if (trimmed.startsWith('data: ')) {
+            const dataStr = trimmed.slice(6);
+            if (dataStr === '[DONE]') continue;
             try {
-              const parsed = JSON.parse(line);
-              if (parsed.message && parsed.message.content) {
-                fullGeneratedText += parsed.message.content;
-                if (onToken) onToken(parsed.message.content, fullGeneratedText);
+              const parsed = JSON.parse(dataStr);
+              const delta = parsed.choices?.[0]?.delta?.content || parsed.message?.content || parsed.response;
+              if (delta) {
+                fullGeneratedText += delta;
+                if (onToken) onToken(delta, fullGeneratedText);
               }
-            } catch (e) {
-              // Ignore partial json chunks
-            }
+            } catch (e) {}
+          } else {
+            // Handle ndjson stream (from Ollama)
+            try {
+              const parsed = JSON.parse(trimmed);
+              const delta = parsed.message?.content || parsed.response;
+              if (delta) {
+                fullGeneratedText += delta;
+                if (onToken) onToken(delta, fullGeneratedText);
+              }
+            } catch (e) {}
           }
         }
-
-        if (fullGeneratedText.trim().length > 10) {
-          aiWorked = true;
-        }
       }
-    } catch (err) {
-      console.warn('Ollama connection unavailable or timed out. Using fallback engine.', err);
+
+      if (fullGeneratedText.trim().length > 10) {
+        aiWorked = true;
+      }
     }
+  } catch (err) {
+    console.warn('Backend /api/ai/story-turn failed or offline. Falling back to simulation engine.', err);
   }
 
   if (!aiWorked) {

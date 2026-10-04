@@ -77,6 +77,7 @@ services:
       - ./server/worlds:/app/server/worlds
       - ./server/campaigns:/app/server/campaigns
       - ./server/generated_images:/app/server/generated_images
+      - ./system.txt:/app/system.txt:ro
     environment:
       - PORT=8000
       - LLM_HOST=http://llama-cpp:8080

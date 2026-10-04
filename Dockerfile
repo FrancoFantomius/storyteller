@@ -16,10 +16,11 @@ ENV PORT=8000
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend server code and built frontend dist
+# Copy backend server code, system prompt template, and built frontend dist
 COPY server/ ./server/
+COPY system.txt ./system.txt
 COPY --from=frontend-builder /app/dist ./dist
 
 EXPOSE 8000
 
-CMD ["python3", "server/main.py"]
+CMD ["python3", "server/server.py"]
