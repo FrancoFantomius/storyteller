@@ -1,0 +1,112 @@
+{
+  "id": "aethelgard",
+  "name": "The Shattered Realm of Aethelgard",
+  "genre": "High Fantasy & Magic",
+  "tone": "Epic, mysterious, and richly atmospheric",
+  "description": "An ancient continent broken into floating skylands connected by crystalline leylines. Ancient dragonlords have fallen, leaving volatile arcane anomalies and forgotten relics.",
+  "coverColor": "#6750A4",
+  "coverIcon": "fort",
+  "setting": "Aethelgard was once a unified empire under the Sunken Spire. When the Great Leyline Fracture occurred, mountain ranges tore free into the heavens. Cities now perch on floating archipelagos, protected by runic wardstones and skyship navigators. Magic flows like wind—unstable, luminous, and precious.",
+  "logic": [
+    "Leyline crystals lose power if exposed to dragonfire.",
+    "Skyships require raw aether prisms to remain aloft between the floating isles.",
+    "Rune magic requires the speaker to vocalize in the Old Tongue; silent casting is impossible.",
+    "The Nightshroud storm in the lower depths corrupts living flesh into crystalline husks if unprotected.",
+    "NPCs respect oaths bound by blood and steel above imperial writs."
+  ],
+  "loreEntries": [
+    {
+      "keyword": "Leyline Fracture",
+      "summary": "The apocalyptic cataclysm 300 years ago that tore the continent into floating skylands."
+    },
+    {
+      "keyword": "Sunken Spire",
+      "summary": "The drowned capital resting at the bottom of the abyssal mist, rumored to hold the Prime Hearth."
+    },
+    {
+      "keyword": "Aether Prisms",
+      "summary": "Humming turquoise crystals mined from falling star fragments, essential for flight and wards."
+    }
+  ],
+  "characters": [
+    {
+      "id": "char_1",
+      "name": "Kaelen Ashthorn",
+      "type": "playable",
+      "role": "Leyline Spellblade",
+      "bio": "A disgraced warden of the Citadel who bound an unstable lightning prism into a notched silver broadsword.",
+      "stats": {
+        "Strength": 14,
+        "Agility": 16,
+        "Intelligence": 15,
+        "Charisma": 11,
+        "Willpower": 13
+      },
+      "equipment": ["Notched Silver Broadsword", "Rune-inscribed Leather Coat", "Aether Compass", "3x Leyline Prisms"]
+    },
+    {
+      "id": "char_2",
+      "name": "Lady Vespera Nightshade",
+      "type": "playable",
+      "role": "Shadowweaver Arcanist",
+      "bio": "An outcast noble scholar searching for the lost astrological grimoires of the Sunken Spire.",
+      "stats": {
+        "Strength": 8,
+        "Agility": 14,
+        "Intelligence": 18,
+        "Charisma": 15,
+        "Willpower": 16
+      },
+      "equipment": ["Ebony Focus Rod", "Velvet Celestial Cloak", "Astral Almanac", "Vial of Luminescent Ink"]
+    },
+    {
+      "id": "char_3",
+      "name": "Borek Ironhand",
+      "type": "playable",
+      "role": "Skyship Skiff Captain",
+      "bio": "A seasoned dwarven corsair and mechanic with a mechanical brass eye and an unshakable loyalty to his crew.",
+      "stats": {
+        "Strength": 17,
+        "Agility": 12,
+        "Intelligence": 13,
+        "Charisma": 14,
+        "Willpower": 15
+      },
+      "equipment": ["Aether Harpoon Pistol", "Hydraulic Wrench", "Heavy Welder Vest", "Bottle of Cloudfire Rum"]
+    },
+    {
+      "id": "char_npc_1",
+      "name": "Archon Malakor",
+      "type": "npc",
+      "role": "High Inquisitor of the Sunken Spire",
+      "bio": "A zealous blind mage who believes reuniting the floating islands requires purging all unregulated arcanists.",
+      "faction": "The Sunken Orthodoxy",
+      "secret": "Secretly harnesses forbidden void glyphs to prolong his longevity."
+    },
+    {
+      "id": "char_npc_2",
+      "name": "Lyra the Whisperer",
+      "type": "npc",
+      "role": "Black Market Information Broker",
+      "bio": "Runs a hidden tavern built inside the hollow ribcage of a leviathan docked at Cloudpeak Port.",
+      "faction": "The Driftwood Syndicate",
+      "secret": "Owes a blood debt to the Pirate Baron of the Maelstrom."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scen_1",
+      "title": "The Ghost Vessel of the Maelstrom",
+      "description": "An abandoned dreadnought skyship drifts out of the perpetual thunderclouds above Cloudpeak Port. Its distress beacon pulses with ancient violet light.",
+      "starterAction": "I steer my skiff toward the dreadnought's open cargo bay and secure my grapple rope."
+    },
+    {
+      "id": "scen_2",
+      "title": "Infiltration of the Sunken Vaults",
+      "description": "Deep within the flooded ruins of the Citadel, a sealed gate carved with weeping seraphs has begun to resonate with your aether compass.",
+      "starterAction": "I light a flare, draw my weapon, and step past the broken seal into the echoing hall."
+    }
+  ],
+  "createdAt": "2026-10-04T12:00:00.000Z",
+  "updatedAt": "2026-10-04T12:00:00.000Z"
+}

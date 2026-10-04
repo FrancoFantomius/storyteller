@@ -1,0 +1,78 @@
+{
+  "id": "neo-kyoto",
+  "name": "Neo-Kyoto 2099: Neon Syndicate",
+  "genre": "Cyberpunk & Sci-Fi Noir",
+  "tone": "Gritty, high-tech, neon-drenched, suspenseful",
+  "description": "A vertical megacity ruled by omnipotent megacorporations, black-market cyberware surgeons, and decentralized hacker collectives living beneath holographic skies.",
+  "coverColor": "#006A6A",
+  "coverIcon": "memory",
+  "setting": "Neo-Kyoto spans 300 levels of skyward sprawl. The upper penthouses pierce the smog clouds in perpetual sunlight, while Sector 0 below is a rain-slicked labyrinth of noodle stalls, synth-drug dens, and rogue cyber-samurai.",
+  "logic": [
+    "Cyberware implants require immunosuppressant booster chips every 72 hours or neural feedback ensues.",
+    "Corporate security drones have automatic shoot-to-kill authorizations in high-class biometric zones.",
+    "Data stored on military cold-wallets can only be decrypted through physical neural jack connection.",
+    "The rain in Sector 4 is mildly corrosive industrial fallout—always wear coated synthetics.",
+    "AI constructs above Turing Class 4 are illegal under the 2088 Geneva Matrix Accord."
+  ],
+  "loreEntries": [
+    {
+      "keyword": "AcroCorp",
+      "summary": "The dominant biotechnology conglomerate holding patents on 80% of human organ synthesizers."
+    },
+    {
+      "keyword": "Ghost Grid",
+      "summary": "The rogue encrypted cyberspace frequency where black-hat netrunners trade corporate secrets."
+    }
+  ],
+  "characters": [
+    {
+      "id": "char_nk_1",
+      "name": "Ren 'Glitch' Takahashi",
+      "type": "playable",
+      "role": "Street Netrunner & Deck Specialist",
+      "bio": "A former corporate data architect who went rogue after discovering AcroCorp's illegal memory wiping project.",
+      "stats": {
+        "Strength": 10,
+        "Agility": 15,
+        "Intelligence": 18,
+        "Charisma": 13,
+        "Willpower": 14
+      },
+      "equipment": ["Onyx Cyberdeck v4", "Sub-dermal Smartlink", "Silenced Mag-Pistol", "Encrypted Data Shard"]
+    },
+    {
+      "id": "char_nk_2",
+      "name": "Mira Vance",
+      "type": "playable",
+      "role": "Chrome Solo / Enforcer",
+      "bio": "Ex-special forces bodyguard with titanium-alloy skeletal reinforcements and thermal optic cyber-eyes.",
+      "stats": {
+        "Strength": 18,
+        "Agility": 16,
+        "Intelligence": 11,
+        "Charisma": 10,
+        "Willpower": 15
+      },
+      "equipment": ["Thermal Monoblade Katana", "Heavy Kinetic Shotgun", "Reinforced Weave Duster", "Combat Stim Inhaler"]
+    },
+    {
+      "id": "char_nk_npc_1",
+      "name": "Kuroda San",
+      "type": "npc",
+      "role": "Yakuza Boss of Sector 7",
+      "bio": "An ancient cyber-enhanced patriarch who communicates through biometric projection fans.",
+      "faction": "Neon Dragon Clan",
+      "secret": "Suffering from cyber-dementia and secretly transferring his mind into a clone."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scen_nk_1",
+      "title": "Midnight Data Heist at Apex Tower",
+      "description": "A thunderstorm knocks out secondary radar at AcroCorp's 140th floor laboratory. You have 7 minutes before the backup emergency grid comes online.",
+      "starterAction": "I slice through the maintenance vent lock with my monoblade and slip into the terminal room."
+    }
+  ],
+  "createdAt": "2026-10-04T12:00:00.000Z",
+  "updatedAt": "2026-10-04T12:00:00.000Z"
+}

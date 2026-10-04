@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play Campaign — Storyteller</title>
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Desktop Navigation Rail -->
+    <md-navigation-rail class="desktop-nav-rail" alignment="top" active-index="0">
+      <div slot="header" style="padding: 12px 0; text-align: center;">
+        <md-icon name="auto_stories" size="32" style="color: var(--md-sys-color-primary);"></md-icon>
+      </div>
+
+      <md-navigation-rail-item icon="auto_stories" label="Play" value="play" active></md-navigation-rail-item>
+      <md-navigation-rail-item icon="public" label="Worlds" value="world-editor"></md-navigation-rail-item>
+      <md-navigation-rail-item icon="settings" label="Settings" value="settings"></md-navigation-rail-item>
+
+      <div slot="footer">
+        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
+      </div>
+    </md-navigation-rail>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top App Bar with Clean Icon Buttons -->
+      <md-top-app-bar variant="small" headline="Storyteller">
+        <div slot="navigation">
+          <md-icon-button id="home-btn" icon="home" aria-label="Home"></md-icon-button>
+        </div>
+
+        <div slot="actions" style="display: flex; gap: 4px; align-items: center;">
+          <div id="campaign-actions" style="display: none; gap: 4px; align-items: center;">
+            <md-icon-button id="undo-btn" icon="undo" aria-label="Undo Turn"></md-icon-button>
+            <md-icon-button id="lore-sheet-btn" icon="menu_book" aria-label="World Lore"></md-icon-button>
+          </div>
+          <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
+        </div>
+      </md-top-app-bar>
+
+      <!-- Active Campaign Header Strip (Clean text: World - Character) -->
+      <div id="campaign-header-strip" style="display: none; background: var(--md-sys-color-surface-container-low); padding: 12px 20px; border-bottom: 1px solid var(--md-sys-color-outline-variant);">
+        <h2 id="header-camp-title" style="font-size: 16px; font-weight: 600; color: var(--md-sys-color-on-surface);">Loading...</h2>
+      </div>
+
+      <!-- Turn Page Content Container -->
+      <div class="page-wrapper">
+        <!-- Home View: List of Played Sets -->
+        <div id="home-view" style="display: none; flex-direction: column; gap: 16px; width: 100%;">
+          <!-- Populated by play.js -->
+        </div>
+
+        <!-- New Story View: World Selection & Character Selection -->
+        <div id="new-story-view" style="display: none; flex-direction: column; gap: 16px; width: 100%;">
+          <!-- Populated by play.js -->
+        </div>
+
+        <!-- Active Story Turn View -->
+        <div id="turn-display-area" class="turn-container" style="display: none;">
+          <!-- Populated by play.js for the active turn -->
+        </div>
+
+        <div id="story-generating-indicator" style="display: none; align-items: center; gap: 12px; padding: 16px; background: var(--md-sys-color-surface-container-high); border-radius: 12px;">
+          <md-loading-indicator size="small"></md-loading-indicator>
+          <span style="font-size: 14px; font-weight: 500; color: var(--md-sys-color-primary);">Continuing the story...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plus FAB to start a new story from Home -->
+  <md-fab id="home-fab" class="floating-new-fab" icon="add" label="New Story" aria-label="Start a new story" style="display: none;"></md-fab>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <md-navigation-bar class="mobile-bottom-nav" active-index="0" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;">
+    <md-navigation-bar-item icon="auto_stories" label="Play" value="play"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="public" label="Worlds" value="world-editor"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="settings" label="Settings" value="settings"></md-navigation-bar-item>
+  </md-navigation-bar>
+
+  <!-- World Lore & Logic Rules Side Sheet -->
+  <md-side-sheet id="world-lore-side-sheet" headline="World Lore & Rules" type="modal">
+    <div style="padding: 12px 0; display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <h3 id="lore-world-name" style="font-size: 18px; font-weight: 700; color: var(--md-sys-color-primary);">World Name</h3>
+        <span id="lore-world-genre" style="font-size: 13px; color: var(--md-sys-color-secondary);">Genre</span>
+      </div>
+
+      <div>
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Setting Lore</h4>
+        <p id="lore-setting-text" style="font-size: 13px; line-height: 1.6;"></p>
+      </div>
+
+      <md-divider></md-divider>
+
+      <div>
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--md-sys-color-primary);">Immutable Logic Rules</h4>
+        <ul id="lore-rules-list" style="padding-left: 20px; font-size: 13px; line-height: 1.5;"></ul>
+      </div>
+
+      <md-divider></md-divider>
+
+      <div>
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--md-sys-color-tertiary);">Key NPCs</h4>
+        <div id="lore-npcs-list" style="font-size: 13px;"></div>
+      </div>
+    </div>
+
+    <div slot="actions">
+      <md-button variant="text" onclick="document.getElementById('world-lore-side-sheet').open = false">Close</md-button>
+    </div>
+  </md-side-sheet>
+
+  <script type="module" src="/src/pages/play.js"></script>
+</body>
+</html>

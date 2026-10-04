@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Editor — Storyteller</title>
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Desktop Navigation Rail -->
+    <md-navigation-rail class="desktop-nav-rail" alignment="top">
+      <div slot="header" style="padding: 12px 0; text-align: center;">
+        <md-icon name="auto_stories" size="32" style="color: var(--md-sys-color-primary);"></md-icon>
+      </div>
+
+      <md-navigation-rail-item icon="auto_stories" label="Play" value="play"></md-navigation-rail-item>
+      <md-navigation-rail-item icon="public" label="Worlds" value="world-editor" active></md-navigation-rail-item>
+      <md-navigation-rail-item icon="settings" label="Settings" value="settings"></md-navigation-rail-item>
+
+      <div slot="footer">
+        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Dark/Light Theme"></md-icon-button>
+      </div>
+    </md-navigation-rail>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top App Bar -->
+      <md-top-app-bar variant="small" headline="World Editor" subtitle="Design custom worlds, logic rules & characters">
+        <div slot="actions">
+          <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
+        </div>
+      </md-top-app-bar>
+
+      <div class="page-wrapper">
+        <!-- AI Prompt Box at the Top -->
+        <div class="surface-card" style="border: 1px solid var(--md-sys-color-primary); background: linear-gradient(135deg, var(--md-sys-color-surface-container-low), var(--md-sys-color-surface-container));">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <md-icon name="auto_awesome" style="color: var(--md-sys-color-primary);"></md-icon>
+            <h2 class="title-medium" style="color: var(--md-sys-color-primary);">World Generator</h2>
+          </div>
+          <p style="font-size: 14px; margin-bottom: 16px; color: var(--md-sys-color-secondary);">
+            Describe a brief universe concept below to automatically generate setting lore, logic constraints, and characters.
+          </p>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 280px;">
+              <md-text-field
+                id="ai-world-prompt-input"
+                variant="outlined"
+                label="World Concept / Theme"
+                leading-icon="public"
+                style="width: 100%;"
+              ></md-text-field>
+            </div>
+            <md-button id="ai-generate-world-btn" variant="filled" icon="auto_awesome">
+              Generate World
+            </md-button>
+          </div>
+        </div>
+
+        <!-- Action Bar: Scratch vs Existing -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 class="title-medium">Custom Worlds</h2>
+            <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Saved on server in <code>/server/worlds</code></p>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <md-button id="create-scratch-btn" variant="filled" icon="add">
+              Create New World
+            </md-button>
+            <md-button id="clone-existing-btn" variant="tonal" icon="content_copy">
+              Create from Existing World
+            </md-button>
+          </div>
+        </div>
+
+        <!-- Saved Worlds Grid -->
+        <div id="worlds-list-container" class="grid-2">
+          <!-- Populated by world-editor.js -->
+        </div>
+
+        <div id="worlds-empty-state" class="surface-card" style="display: none; text-align: center; padding: 48px 20px;">
+          <md-icon name="travel_explore" size="48" style="color: var(--md-sys-color-secondary); margin-bottom: 12px;"></md-icon>
+          <h3 class="title-small">No Worlds Found</h3>
+          <p style="color: var(--md-sys-color-secondary); margin-bottom: 16px;">Create your first world or use the generator above!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <md-navigation-bar class="mobile-bottom-nav" active-index="1" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;">
+    <md-navigation-bar-item icon="auto_stories" label="Play" value="play"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="public" label="Worlds" value="world-editor"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="settings" label="Settings" value="settings"></md-navigation-bar-item>
+  </md-navigation-bar>
+
+  <!-- World Editor Main Full Dialog -->
+  <md-dialog id="world-editor-dialog" headline="World Studio" icon="public" style="--md-dialog-max-width: 820px; max-width: 820px; width: 95%;">
+    <div style="display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; padding-right: 6px;">
+      <h3 id="editor-dialog-headline" class="title-small" style="color: var(--md-sys-color-primary);">World Overview</h3>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 260px;">
+          <md-text-field id="world-name-input" variant="outlined" label="World Name" required style="width: 100%;"></md-text-field>
+        </div>
+        <div style="flex: 1; min-width: 160px;">
+          <md-text-field id="world-genre-input" variant="outlined" label="Genre" style="width: 100%;"></md-text-field>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 260px;">
+          <md-text-field id="world-tone-input" variant="outlined" label="Narrative Tone" style="width: 100%;"></md-text-field>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+          <md-text-field id="world-color-input" variant="outlined" label="Theme Color" value="#6750A4" style="width: 100%;"></md-text-field>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+          <md-text-field id="world-icon-input" variant="outlined" label="Icon Name" value="fort" style="width: 100%;"></md-text-field>
+        </div>
+      </div>
+
+      <md-text-field id="world-desc-input" variant="outlined" label="Short Summary" style="width: 100%;"></md-text-field>
+
+      <div>
+        <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 6px;">Setting & World Lore:</label>
+        <textarea id="world-setting-input" rows="4" style="width: 100%; padding: 12px; border-radius: var(--md-sys-shape-corner-medium); border: 1px solid var(--md-sys-color-outline); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: inherit; font-size: 14px;"></textarea>
+      </div>
+
+      <md-divider></md-divider>
+
+      <!-- Immutable Logic Rules -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div>
+            <h4 style="font-size: 16px; font-weight: 700;">Immutable World Logic & Rules</h4>
+            <p style="font-size: 12px; color: var(--md-sys-color-secondary);">Specific rules the narrator will strictly obey</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <md-text-field id="new-logic-rule-input" variant="outlined" label="New Rule" style="flex: 1;"></md-text-field>
+          <md-button id="add-logic-rule-btn" variant="tonal" icon="add">Add Rule</md-button>
+        </div>
+
+        <div id="logic-rules-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+      </div>
+
+      <md-divider></md-divider>
+
+      <!-- Characters Studio -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div>
+            <h4 style="font-size: 16px; font-weight: 700;">Characters Studio</h4>
+            <p style="font-size: 12px; color: var(--md-sys-color-secondary);">Playable archetypes and key NPCs</p>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <md-button id="add-playable-char-btn" variant="tonal" icon="person_add">Add Playable</md-button>
+            <md-button id="add-npc-char-btn" variant="outlined" icon="group_add">Add NPC</md-button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <h5 style="font-size: 14px; margin-bottom: 8px; color: var(--md-sys-color-primary);">Playable Characters</h5>
+            <div id="playable-chars-list"></div>
+          </div>
+          <div>
+            <h5 style="font-size: 14px; margin-bottom: 8px; color: var(--md-sys-color-tertiary);">Non-Playable Characters (NPCs)</h5>
+            <div id="npc-chars-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div slot="actions">
+      <md-button id="cancel-world-btn" variant="text">Cancel</md-button>
+      <md-button id="save-world-btn" variant="filled" icon="save">Save to Server</md-button>
+    </div>
+  </md-dialog>
+
+  <!-- Character Sub Dialog -->
+  <md-dialog id="char-editor-dialog" headline="Add Character" icon="person">
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 0;">
+      <input type="hidden" id="char-type-input" value="playable" />
+      <md-text-field id="char-name-input" variant="outlined" label="Character Name" required></md-text-field>
+      <md-text-field id="char-role-input" variant="outlined" label="Role / Archetype"></md-text-field>
+      <md-text-field id="char-bio-input" variant="outlined" label="Short Biography"></md-text-field>
+
+      <div id="char-gear-group">
+        <md-text-field id="char-gear-input" variant="outlined" label="Starting Equipment (Comma separated)"></md-text-field>
+      </div>
+
+      <div id="char-npc-group" style="display: none;">
+        <md-text-field id="char-faction-input" variant="outlined" label="Faction / Allegiance"></md-text-field>
+        <md-text-field id="char-secret-input" variant="outlined" label="Secret / Agenda"></md-text-field>
+      </div>
+    </div>
+    <div slot="actions">
+      <md-button variant="text" onclick="document.getElementById('char-editor-dialog').open = false">Cancel</md-button>
+      <md-button id="save-char-sub-btn" variant="filled">Add Character</md-button>
+    </div>
+  </md-dialog>
+
+  <!-- Rename Dialog -->
+  <md-dialog id="rename-dialog" headline="Rename World" icon="drive_file_rename_outline">
+    <div style="padding: 8px 0;">
+      <md-text-field id="rename-world-input" variant="outlined" label="New World Name" required style="width: 100%;"></md-text-field>
+    </div>
+    <div slot="actions">
+      <md-button variant="text" onclick="document.getElementById('rename-dialog').open = false">Cancel</md-button>
+      <md-button id="confirm-rename-btn" variant="filled">Rename</md-button>
+    </div>
+  </md-dialog>
+
+  <!-- Clone Picker Dialog -->
+  <md-dialog id="clone-picker-dialog" headline="Clone Existing World" icon="content_copy">
+    <p style="font-size: 14px; margin-bottom: 12px; color: var(--md-sys-color-secondary);">Select a world to fork into a new editable universe:</p>
+    <div id="clone-picker-list" style="max-height: 50vh; overflow-y: auto;"></div>
+    <div slot="actions">
+      <md-button variant="text" onclick="document.getElementById('clone-picker-dialog').open = false">Cancel</md-button>
+    </div>
+  </md-dialog>
+
+  <!-- Delete Confirmation Dialog -->
+  <md-dialog id="delete-dialog" headline="Delete World?" icon="delete_forever">
+    <p id="delete-dialog-text" style="font-size: 14px; color: var(--md-sys-color-on-surface);"></p>
+    <div slot="actions">
+      <md-button variant="text" onclick="document.getElementById('delete-dialog').open = false">Cancel</md-button>
+      <md-button id="confirm-delete-btn" variant="filled" style="--md-sys-color-primary: var(--md-sys-color-error);">Delete</md-button>
+    </div>
+  </md-dialog>
+
+  <script type="module" src="/src/pages/world-editor.js"></script>
+</body>
+</html>

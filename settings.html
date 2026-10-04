@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — Storyteller</title>
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Desktop Navigation Rail -->
+    <md-navigation-rail class="desktop-nav-rail" alignment="top" active-index="2">
+      <div slot="header" style="padding: 12px 0; text-align: center;">
+        <md-icon name="auto_stories" size="32" style="color: var(--md-sys-color-primary);"></md-icon>
+      </div>
+
+      <md-navigation-rail-item icon="auto_stories" label="Play" value="play"></md-navigation-rail-item>
+      <md-navigation-rail-item icon="public" label="Worlds" value="world-editor"></md-navigation-rail-item>
+      <md-navigation-rail-item icon="settings" label="Settings" value="settings" active></md-navigation-rail-item>
+
+      <div slot="footer">
+        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
+      </div>
+    </md-navigation-rail>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top App Bar -->
+      <md-top-app-bar variant="small" headline="Platform Settings" subtitle="Configure Ollama inference, context size & preferences">
+        <div slot="actions">
+          <md-button id="save-settings-btn" variant="filled" icon="save">Save Changes</md-button>
+        </div>
+      </md-top-app-bar>
+
+      <div class="page-wrapper" style="max-width: 960px;">
+        <!-- Section 1: Ollama Model & Connection -->
+        <div class="surface-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <md-icon name="memory" size="28" style="color: var(--md-sys-color-primary);"></md-icon>
+              <div>
+                <h3 class="title-small">Ollama Engine</h3>
+                <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Connect to local Ollama inference service</p>
+              </div>
+            </div>
+            <span id="ollama-status-badge" class="badge-pill secondary">Checking...</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <div style="flex: 2; min-width: 260px;">
+                <md-text-field id="ollama-host-input" variant="outlined" label="Ollama Server URL" style="width: 100%;"></md-text-field>
+              </div>
+              <md-button id="test-ollama-btn" variant="tonal" icon="sync">
+                Test Connection
+              </md-button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <md-text-field id="ollama-model-input" variant="outlined" label="Active Ollama Model" style="width: 100%;"></md-text-field>
+              <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Popular models:</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <md-chip variant="assist" class="model-chip" data-model="llama3:latest" label="llama3:latest"></md-chip>
+                <md-chip variant="assist" class="model-chip" data-model="mistral:latest" label="mistral:latest"></md-chip>
+                <md-chip variant="assist" class="model-chip" data-model="gemma2:latest" label="gemma2:latest"></md-chip>
+                <md-chip variant="assist" class="model-chip" data-model="phi3:latest" label="phi3:latest"></md-chip>
+                <md-chip variant="assist" class="model-chip" data-model="qwen2.5:latest" label="qwen2.5:latest"></md-chip>
+              </div>
+            </div>
+
+            <div id="detected-models-container"></div>
+
+            <md-divider></md-divider>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 500; font-size: 14px;">Simulation Fallback Engine</div>
+                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Enable instant procedural narrative fallback if Ollama is offline or loading</div>
+              </div>
+              <md-switch id="sim-fallback-switch" selected icons></md-switch>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Context Window & Generation Tuning -->
+        <div class="surface-card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <md-icon name="tune" size="28" style="color: var(--md-sys-color-primary);"></md-icon>
+            <div>
+              <h3 class="title-small">Context Window & Generation Tuning</h3>
+              <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Tune context size, temperature, and output parameters</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Context Size Slider -->
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
+                <span>Context Window (Tokens):</span>
+                <span id="ctx-value-display" style="font-weight: 700; color: var(--md-sys-color-primary);">4096</span>
+              </div>
+              <md-slider id="ctx-slider" min="2048" max="16384" step="1024" value="4096" labeled></md-slider>
+            </div>
+
+            <!-- Temperature Slider -->
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
+                <span>Creativity / Temperature (0.1 - 1.5):</span>
+                <span id="temp-value-display" style="font-weight: 700; color: var(--md-sys-color-primary);">0.70</span>
+              </div>
+              <md-slider id="temp-slider" min="10" max="150" step="5" value="70" labeled></md-slider>
+            </div>
+
+            <!-- Max Response Tokens Slider -->
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
+                <span>Max Response Tokens (100 - 1500):</span>
+                <span id="tokens-value-display" style="font-weight: 700; color: var(--md-sys-color-primary);">600</span>
+              </div>
+              <md-slider id="max-tokens-slider" min="100" max="1500" step="50" value="600" labeled></md-slider>
+            </div>
+
+            <md-text-field
+              id="narrative-tone-input"
+              variant="outlined"
+              label="Master Narrative Tone"
+            ></md-text-field>
+          </div>
+        </div>
+
+        <!-- Section 3: Storyteller Presentation Preferences -->
+        <div class="surface-card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <md-icon name="palette" size="28" style="color: var(--md-sys-color-primary);"></md-icon>
+            <div>
+              <h3 class="title-small">Presentation & Preferences</h3>
+              <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Customize gameplay and visual controls</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 500; font-size: 14px;">Procedural Scene Illustrations</div>
+                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Generate visual vector scene card art matching the story atmosphere</div>
+              </div>
+              <md-switch id="gen-art-switch" selected icons></md-switch>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 500; font-size: 14px;">Story Action Suggestions</div>
+                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Display clickable action suggestions at the end of each story turn</div>
+              </div>
+              <md-switch id="quick-sugg-switch" selected icons></md-switch>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 500; font-size: 14px;">Dark Mode Theme</div>
+                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Switch between Material Design 3 Dark and Light color schemes</div>
+              </div>
+              <md-switch id="theme-mode-switch" selected icons></md-switch>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Data & Server Storage -->
+        <div class="surface-card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <md-icon name="dns" size="28" style="color: var(--md-sys-color-primary);"></md-icon>
+            <div>
+              <h3 class="title-small">Storage & Backups</h3>
+              <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Server persistence in <code>/server/worlds</code> and <code>/server/campaigns</code></p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <md-button id="export-data-btn" variant="tonal" icon="download">
+              Export All Data (JSON)
+            </md-button>
+            <md-button id="reset-defaults-btn" variant="outlined" icon="restart_alt">
+              Reset Settings
+            </md-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <md-navigation-bar class="mobile-bottom-nav" active-index="2" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;">
+    <md-navigation-bar-item icon="auto_stories" label="Play" value="play"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="public" label="Worlds" value="world-editor"></md-navigation-bar-item>
+    <md-navigation-bar-item icon="settings" label="Settings" value="settings"></md-navigation-bar-item>
+  </md-navigation-bar>
+
+  <script type="module" src="/src/pages/settings.js"></script>
+</body>
+</html>
