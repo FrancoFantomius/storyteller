@@ -9,8 +9,13 @@ export function getSystemTheme() {
 }
 
 export const DEFAULT_SETTINGS = {
+  llmProvider: 'llamacpp', // 'llamacpp' | 'ollama' | 'simulation'
+  llamaCppHost: 'http://localhost:8080',
   ollamaHost: 'http://localhost:11434',
   ollamaModel: 'llama3:latest',
+  diffusersHost: 'http://localhost:8001',
+  imageProvider: 'diffusers', // 'diffusers' | 'procedural' | 'none'
+  diffusersSteps: 4,
   useSimulationFallback: true,
   temperature: 0.7,
   topP: 0.9,
@@ -19,7 +24,7 @@ export const DEFAULT_SETTINGS = {
   theme: 'system', // 'system' | 'dark' | 'light'
   generateArt: true,
   autoSuggestActions: true,
-  narrativeTone: 'Epic and richly descriptive',
+  narrativeTone: 'Richly descriptive and ',
 };
 
 export function getSettings() {

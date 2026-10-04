@@ -115,3 +115,52 @@ export function generateSceneSVG(genre = 'fantasy', mood = 'mysterious', keyword
     </svg>
   `;
 }
+
+/**
+ * Generates either a Diffusers ROCm AI illustration or a procedural SVG
+ */
+export async function getSceneVisualHTML({ genre = 'fantasy', mood = 'mysterious', text = '', settings = {} }) {
+  const provider = settings.imageProvider || (settings.generateArt ? 'diffusers' : 'none');
+
+  if (provider === 'none') {
+    return '';
+  }
+
+  if (provider === 'diffusers') {
+    try {
+      // Extract a summary prompt snippet from the turn text
+      const promptSnippet = text.slice(0, 200).replace(/\n/g, ' ');
+      const res = await fetch('/api/ai/generate-scene-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: promptSnippet || `${genre} landscape, ${mood} environment`,
+          genre: genre,
+          mood: mood,
+          host: settings.diffusersHost || 'http://localhost:8001',
+          steps: settings.diffusersSteps || 4,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const src = data.file_url || data.data_url;
+        if (src) {
+          return `
+            <div class="diffusers-scene-image-wrapper" style="position: relative; border-radius: 16px; overflow: hidden; max-height: 280px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+              <img src="${src}" alt="Scene illustration" style="width: 100%; height: 280px; object-fit: cover; display: block;" />
+              <div style="position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); border-radius: 20px; padding: 2px 10px; font-size: 11px; color: #fff; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                <md-icon name="photo_spark" size="14" style="color: #67ffba;"></md-icon> ROCm Diffusers (${data.generation_time_seconds || 1}s)
+              </div>
+            </div>
+          `;
+        }
+      }
+    } catch (err) {
+      console.warn('Diffusers service failed, falling back to procedural SVG vector card', err);
+    }
+  }
+
+  // Fallback to procedural vector SVG
+  return generateSceneSVG(genre, mood, text);
+}

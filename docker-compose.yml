@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  # =========================================================================
+  # 1. llama.cpp Server (ROCm / AMD GPU Accelerated)
+  # =========================================================================
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server-rocm
+    container_name: storyteller-llamacpp
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models/llm:/models:ro
+    environment:
+      # AMD GPU Arch Override (e.g. 11.0.0 for RX 7000, 10.3.0 for RX 6000)
+      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION:-11.0.0}
+      - HIP_VISIBLE_DEVICES=0
+    # AMD ROCm GPU Passthrough
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    command: >
+      --host 0.0.0.0
+      --port 8080
+      -m /models/${LLAMA_MODEL_FILENAME:-model.gguf}
+      -ngl ${LLAMA_N_GPU_LAYERS:-99}
+      -c ${LLAMA_CTX_SIZE:-4096}
+      --cont-batching
+
+  # =========================================================================
+  # 2. Diffusers Server (ROCm PyTorch / AMD GPU Accelerated)
+  # =========================================================================
+  diffusers:
+    build:
+      context: ./services/diffusers
+      dockerfile: Dockerfile
+    container_name: storyteller-diffusers
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./models/diffusers:/models
+      - ./hf_cache:/root/.cache/huggingface
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION:-11.0.0}
+      - HIP_VISIBLE_DEVICES=0
+      - DIFFUSERS_MODEL_ID=${DIFFUSERS_MODEL_ID:-stabilityai/sd-turbo}
+      - PORT=8001
+    # AMD ROCm GPU Passthrough
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+
+  # =========================================================================
+  # 3. Storyteller Fullstack Application
+  # =========================================================================
+  storyteller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: storyteller-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server/worlds:/app/server/worlds
+      - ./server/campaigns:/app/server/campaigns
+      - ./server/generated_images:/app/server/generated_images
+    environment:
+      - PORT=8000
+      - LLM_HOST=http://llama-cpp:8080
+      - DIFFUSERS_HOST=http://diffusers:8001
+    depends_on:
+      - llama-cpp
+      - diffusers

@@ -1,8 +1,9 @@
-# Storyteller AI - Interactive Choose-Your-Own-Adventure Platform
+# Storyteller
+## Interactive Choose-Your-Own-Adventure Platform
 
 An AI-powered, browser-based interactive storytelling platform that lets users create, explore, and play choose-your-own-adventure style games with virtually unlimited freedom.
 
-Built with **Vite**, **TypeScript**, **@francofantomius/material-components** (Material Design 3 Web Components), and local **Ollama** LLM inference.
+Built with **Vite**, **TypeScript**, **@francofantomius/material-components** (Material Design 3 Web Components), and local LLM inference.
 
 ---
 

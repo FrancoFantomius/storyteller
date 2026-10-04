@@ -36,7 +36,118 @@
       <div class="page-wrapper" style="max-width: 860px; gap: 24px;">
         <h1 class="title-large" style="font-size: 28px; font-weight: 700; color: var(--md-sys-color-on-surface); margin: 0;">Settings</h1>
 
-        <!-- Section 1: UI & Layout Settings (First) -->
+        <!-- Section 1: AI Engines & AMD GPU Passthrough -->
+        <section class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <md-icon name="memory" size="24" style="color: var(--md-sys-color-primary);"></md-icon>
+                <h2 class="title-medium" style="margin: 0;">AI Inference Engines (Docker / ROCm)</h2>
+              </div>
+              <md-button id="check-ai-status-btn" variant="tonal" icon="sync">
+                Check Status
+              </md-button>
+            </div>
+            <p class="settings-section-subtext">Configure local llama.cpp and Diffusers services with AMD GPU acceleration</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <!-- LLM Engine Selection -->
+            <div class="setting-item">
+              <div class="setting-item-header">
+                <div class="setting-title">LLM Storyteller Engine</div>
+                <div class="setting-subtext">Choose your preferred local text generation runtime</div>
+              </div>
+              <div class="setting-control" style="margin-top: 6px;">
+                <md-segmented-button-set id="llm-provider-segmented-set">
+                  <md-segmented-button value="llamacpp" label="llama.cpp (ROCm)" icon="speed" selected></md-segmented-button>
+                  <md-segmented-button value="ollama" label="Ollama" icon="neurology"></md-segmented-button>
+                  <md-segmented-button value="simulation" label="Simulation" icon="offline_bolt"></md-segmented-button>
+                </md-segmented-button-set>
+              </div>
+            </div>
+
+            <!-- llama.cpp Configuration -->
+            <div id="llamacpp-config-card" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <md-text-field
+                  id="llamacpp-host-input"
+                  variant="outlined"
+                  label="llama.cpp Server Host"
+                  value="http://localhost:8080"
+                  supporting-text="Default Docker port is 8080 (supports /v1/chat/completions and ROCm GPU)"
+                  style="flex: 1;"
+                ></md-text-field>
+                <div id="llamacpp-status-badge" style="padding-top: 4px;"></div>
+              </div>
+            </div>
+
+            <!-- Ollama Configuration -->
+            <div id="ollama-config-card" style="display: none; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <md-text-field
+                  id="ollama-host-input"
+                  variant="outlined"
+                  label="Ollama Server Host"
+                  value="http://localhost:11434"
+                  supporting-text="Default Ollama host"
+                  style="flex: 1;"
+                ></md-text-field>
+                <div id="ollama-status-badge" style="padding-top: 4px;"></div>
+              </div>
+              <md-text-field
+                id="ollama-model-input"
+                variant="outlined"
+                label="Ollama Model Tag"
+                value="llama3:latest"
+                supporting-text="e.g. llama3:8b, mistral, qwen2.5"
+              ></md-text-field>
+            </div>
+
+            <md-divider></md-divider>
+
+            <!-- Image Generation (Diffusers ROCm) Selection -->
+            <div class="setting-item">
+              <div class="setting-item-header">
+                <div class="setting-title">Scene Artwork & Visuals</div>
+                <div class="setting-subtext">Generate AI scenes using Diffusers (SD-Turbo / SDXL / SD1.5) or Vector SVG</div>
+              </div>
+              <div class="setting-control" style="margin-top: 6px;">
+                <md-segmented-button-set id="image-provider-segmented-set">
+                  <md-segmented-button value="diffusers" label="ROCm Diffusers" icon="photo_spark" selected></md-segmented-button>
+                  <md-segmented-button value="procedural" label="Vector SVG" icon="draw"></md-segmented-button>
+                  <md-segmented-button value="none" label="Off" icon="block"></md-segmented-button>
+                </md-segmented-button-set>
+              </div>
+            </div>
+
+            <!-- Diffusers Service Configuration -->
+            <div id="diffusers-config-card" style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <md-text-field
+                  id="diffusers-host-input"
+                  variant="outlined"
+                  label="Diffusers Service URL"
+                  value="http://localhost:8001"
+                  supporting-text="ROCm PyTorch Diffusers microservice (Docker port 8001)"
+                  style="flex: 1;"
+                ></md-text-field>
+                <div id="diffusers-status-badge" style="padding-top: 4px;"></div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-title">Diffusers Steps (1-20)</div>
+                <div style="padding-top: 16px; width: 100%;">
+                  <md-slider id="diffusers-steps-slider" min="1" max="20" step="1" value="4" labeled style="width: 100%;"></md-slider>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <md-divider></md-divider>
+
+        <!-- Section 2: UI & Layout Settings -->
         <section class="settings-section">
           <div class="settings-section-header">
             <div class="settings-section-title-row">
@@ -60,15 +171,6 @@
                   <md-segmented-button value="dark" label="Dark" icon="dark_mode"></md-segmented-button>
                 </md-segmented-button-set>
               </div>
-            </div>
-
-            <!-- Procedural Illustrations Switch -->
-            <div class="setting-item setting-item-row">
-              <div class="setting-item-header">
-                <div class="setting-title">Procedural Scene Illustrations</div>
-                <div class="setting-subtext">Generate visual vector scene card art matching the story atmosphere</div>
-              </div>
-              <md-switch id="gen-art-switch" selected icons></md-switch>
             </div>
 
             <!-- Story Action Suggestions Switch -->

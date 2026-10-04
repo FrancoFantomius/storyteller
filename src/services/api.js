@@ -89,3 +89,56 @@ export async function checkOllamaStatus(host = 'http://localhost:11434') {
     return { online: false, error: err.message, models: [] };
   }
 }
+
+export async function checkLlamaCppStatus(host = 'http://localhost:8080') {
+  try {
+    const res = await fetch(`/api/llamacpp/status?host=${encodeURIComponent(host)}`);
+    if (!res.ok) return { online: false };
+    return await res.json();
+  } catch (err) {
+    return { online: false, error: err.message };
+  }
+}
+
+export async function checkDiffusersStatus(host = 'http://localhost:8001') {
+  try {
+    const res = await fetch(`/api/diffusers/status?host=${encodeURIComponent(host)}`);
+    if (!res.ok) return { online: false };
+    return await res.json();
+  } catch (err) {
+    return { online: false, error: err.message };
+  }
+}
+
+export async function checkAllAiStatus(opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.llamacppHost) params.set('llamacpp_host', opts.llamacppHost);
+  if (opts.diffusersHost) params.set('diffusers_host', opts.diffusersHost);
+  if (opts.ollamaHost) params.set('ollama_host', opts.ollamaHost);
+
+  try {
+    const res = await fetch(`/api/ai/status?${params.toString()}`);
+    if (!res.ok) throw new Error(`Status HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    return {
+      llamacpp: { online: false, error: err.message },
+      diffusers: { online: false, error: err.message },
+      ollama: { online: false, error: err.message },
+    };
+  }
+}
+
+export async function generateAiSceneImage({ prompt, genre = 'Fantasy', mood = 'mysterious', host = null, steps = 4 }) {
+  const res = await fetch('/api/ai/generate-scene-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, genre, mood, host, steps }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Image generation failed: ${errText}`);
+  }
+  return await res.json();
+}
+

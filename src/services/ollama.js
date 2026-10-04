@@ -45,79 +45,159 @@ INSTRUCTIONS FOR STORYTELLING:
 export async function generateStoryTurn({ world, campaign, userInput, activeCharacter, onToken }) {
   const settings = getSettings();
   const systemPrompt = buildSystemPrompt(world, activeCharacter);
-
   const formattedUserPrompt = `${userInput.trim()}\n\nContinue the narrative based on this input. Describe what happens next.`;
 
-  let ollamaWorked = false;
+  let aiWorked = false;
   let fullGeneratedText = '';
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
+  const provider = settings.llmProvider || 'llamacpp';
 
-    const historyMessages = (campaign.history || []).slice(-8).map(h => {
-      if (h.type === 'narrative') {
-        return { role: 'assistant', content: h.text };
-      } else {
-        return { role: 'user', content: h.text };
-      }
-    });
+  // 1. Try llama.cpp (OpenAI compatible SSE stream)
+  if (provider === 'llamacpp') {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...historyMessages,
-      { role: 'user', content: formattedUserPrompt },
-    ];
+      const historyMessages = (campaign.history || []).slice(-8).map(h => {
+        if (h.type === 'narrative') {
+          return { role: 'assistant', content: h.text };
+        } else {
+          return { role: 'user', content: h.text };
+        }
+      });
 
-    const res = await fetch(`${settings.ollamaHost}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: settings.ollamaModel || 'llama3:latest',
-        messages: messages,
-        stream: true,
-        options: {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...historyMessages,
+        { role: 'user', content: formattedUserPrompt },
+      ];
+
+      const host = settings.llamaCppHost || 'http://localhost:8080';
+      const res = await fetch(`${host.rstrip ? host.rstrip('/') : host.replace(/\/$/, '')}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: messages,
+          stream: true,
           temperature: settings.temperature || 0.7,
           top_p: settings.topP || 0.9,
-          num_ctx: settings.contextSize || 4096,
-        },
-      }),
-      signal: controller.signal,
-    });
+          max_tokens: settings.maxTokens || 600,
+        }),
+        signal: controller.signal,
+      });
 
-    clearTimeout(timeout);
+      clearTimeout(timeout);
 
-    if (res.ok && res.body) {
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(Boolean);
-        for (const line of lines) {
-          try {
-            const parsed = JSON.parse(line);
-            if (parsed.message && parsed.message.content) {
-              fullGeneratedText += parsed.message.content;
-              if (onToken) onToken(parsed.message.content, fullGeneratedText);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop(); // Keep last partial line in buffer
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('data: ')) {
+              const dataStr = trimmed.slice(6);
+              if (dataStr === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(dataStr);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  fullGeneratedText += delta;
+                  if (onToken) onToken(delta, fullGeneratedText);
+                }
+              } catch (e) {
+                // Ignore partial json parse error
+              }
             }
-          } catch (e) {
-            // Ignore partial json chunks
           }
         }
-      }
 
-      if (fullGeneratedText.trim().length > 10) {
-        ollamaWorked = true;
+        if (fullGeneratedText.trim().length > 10) {
+          aiWorked = true;
+        }
       }
+    } catch (err) {
+      console.warn('llama.cpp connection unavailable or timed out. Trying fallback.', err);
     }
-  } catch (err) {
-    console.warn('Ollama connection unavailable or timed out. Using fallback engine.', err);
   }
 
-  if (!ollamaWorked) {
+  // 2. Try Ollama (ndjson stream) if configured or if llama.cpp failed
+  if (!aiWorked && (provider === 'ollama' || !settings.llamaCppHost)) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const historyMessages = (campaign.history || []).slice(-8).map(h => {
+        if (h.type === 'narrative') {
+          return { role: 'assistant', content: h.text };
+        } else {
+          return { role: 'user', content: h.text };
+        }
+      });
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...historyMessages,
+        { role: 'user', content: formattedUserPrompt },
+      ];
+
+      const res = await fetch(`${settings.ollamaHost}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: settings.ollamaModel || 'llama3:latest',
+          messages: messages,
+          stream: true,
+          options: {
+            temperature: settings.temperature || 0.7,
+            top_p: settings.topP || 0.9,
+            num_ctx: settings.contextSize || 4096,
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter(Boolean);
+          for (const line of lines) {
+            try {
+              const parsed = JSON.parse(line);
+              if (parsed.message && parsed.message.content) {
+                fullGeneratedText += parsed.message.content;
+                if (onToken) onToken(parsed.message.content, fullGeneratedText);
+              }
+            } catch (e) {
+              // Ignore partial json chunks
+            }
+          }
+        }
+
+        if (fullGeneratedText.trim().length > 10) {
+          aiWorked = true;
+        }
+      }
+    } catch (err) {
+      console.warn('Ollama connection unavailable or timed out. Using fallback engine.', err);
+    }
+  }
+
+  if (!aiWorked) {
     fullGeneratedText = simulateStoryContinuation(world, activeCharacter, userInput, campaign);
     if (onToken) {
       onToken(fullGeneratedText, fullGeneratedText);
@@ -237,29 +317,60 @@ export async function generateWorldFromPrompt(prompt) {
 }
 Return ONLY valid JSON without markdown wrapping.`;
 
-    const res = await fetch(`${settings.ollamaHost}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: settings.ollamaModel || 'llama3:latest',
-        system: systemPrompt,
-        prompt: `Create a rich world from this concept: "${prompt}"`,
-        stream: false,
-        format: 'json',
-      }),
-      signal: controller.signal,
-    });
+    const provider = settings.llmProvider || 'llamacpp';
+    if (provider === 'llamacpp') {
+      const host = (settings.llamaCppHost || 'http://localhost:8080').replace(/\/$/, '');
+      const res = await fetch(`${host}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Create a rich world from this concept: "${prompt}"` },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      });
 
-    clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          try {
+            generatedData = JSON.parse(content);
+          } catch (e) {
+            const clean = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            generatedData = JSON.parse(clean);
+          }
+        }
+      }
+    } else {
+      const res = await fetch(`${settings.ollamaHost}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: settings.ollamaModel || 'llama3:latest',
+          system: systemPrompt,
+          prompt: `Create a rich world from this concept: "${prompt}"`,
+          stream: false,
+          format: 'json',
+        }),
+        signal: controller.signal,
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.response) {
-        generatedData = JSON.parse(data.response);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.response) {
+          generatedData = JSON.parse(data.response);
+        }
       }
     }
+
+    clearTimeout(timeout);
   } catch (err) {
-    console.warn('Ollama unavailable for world generation, using smart procedural worldbuilder.', err);
+    console.warn('AI engine unavailable for world generation, using smart procedural worldbuilder.', err);
   }
 
   if (!generatedData) {

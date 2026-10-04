@@ -16,7 +16,7 @@ import '@francofantomius/material-components/search-bar';
 import { setupNavigation, showToast } from '../components/nav-bar.js';
 import { fetchWorlds, fetchCampaigns, fetchCampaign, createCampaign, updateCampaign, deleteCampaign } from '../services/api.js';
 import { generateStoryTurn } from '../services/ollama.js';
-import { generateSceneSVG } from '../services/illustrations.js';
+import { generateSceneSVG, getSceneVisualHTML } from '../services/illustrations.js';
 import { getSettings } from '../services/storage.js';
 
 let worlds = [];
@@ -1139,13 +1139,27 @@ function renderCampaignTurnView() {
       container.appendChild(suggestionsSection);
     }
 
-    // 5. Scene Illustration
+    // 5. Scene Illustration (Diffusers ROCm AI or Vector SVG)
     const settings = getSettings();
-    if (settings.generateArt) {
+    const imgProvider = settings.imageProvider || (settings.generateArt ? 'diffusers' : 'none');
+    if (imgProvider !== 'none') {
       const artContainer = document.createElement('div');
       artContainer.className = 'scene-art-container';
       artContainer.innerHTML = generateSceneSVG(activeWorld?.genre || 'fantasy', currentTurn.narrative.sceneMood || 'mysterious', currentTurn.narrative.text);
       container.appendChild(artContainer);
+
+      if (imgProvider === 'diffusers') {
+        getSceneVisualHTML({
+          genre: activeWorld?.genre || 'fantasy',
+          mood: currentTurn.narrative.sceneMood || 'mysterious',
+          text: currentTurn.narrative.text,
+          settings: settings,
+        }).then(visualHtml => {
+          if (visualHtml && artContainer.isConnected) {
+            artContainer.innerHTML = visualHtml;
+          }
+        }).catch(() => {});
+      }
     }
   }
 
