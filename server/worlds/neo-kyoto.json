@@ -31,14 +31,13 @@
       "type": "playable",
       "role": "Street Netrunner & Deck Specialist",
       "bio": "A former corporate data architect who went rogue after discovering AcroCorp's illegal memory wiping project.",
-      "stats": {
-        "Strength": 10,
-        "Agility": 15,
-        "Intelligence": 18,
-        "Charisma": 13,
-        "Willpower": 14
-      },
-      "equipment": ["Onyx Cyberdeck v4", "Sub-dermal Smartlink", "Silenced Mag-Pistol", "Encrypted Data Shard"]
+      "skills": {
+        "Cyberdeck Hacking": 4,
+        "Neural Slicing": 3,
+        "Sub-dermal Stealth": 2,
+        "Pistol Marksmanship": 2,
+        "Corporate Lore": 1
+      }
     },
     {
       "id": "char_nk_2",
@@ -46,14 +45,13 @@
       "type": "playable",
       "role": "Chrome Solo / Enforcer",
       "bio": "Ex-special forces bodyguard with titanium-alloy skeletal reinforcements and thermal optic cyber-eyes.",
-      "stats": {
-        "Strength": 18,
-        "Agility": 16,
-        "Intelligence": 11,
-        "Charisma": 10,
-        "Willpower": 15
-      },
-      "equipment": ["Thermal Monoblade Katana", "Heavy Kinetic Shotgun", "Reinforced Weave Duster", "Combat Stim Inhaler"]
+      "skills": {
+        "Monoblade Combat": 4,
+        "Kinetic Weapons": 3,
+        "Thermal Optics": 2,
+        "Body Reinforcement": 2,
+        "Streetwise": 1
+      }
     },
     {
       "id": "char_nk_npc_1",

@@ -45,19 +45,8 @@ export function setupNavigation(activePage = 'play') {
     });
   }
 
-  // Handle Theme Toggle
-  const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
-  themeToggleButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const current = getSettings().theme || 'dark';
-      const nextTheme = current === 'dark' ? 'light' : 'dark';
-      saveSettings({ theme: nextTheme });
-      btn.setAttribute('icon', nextTheme === 'dark' ? 'light_mode' : 'dark_mode');
-      showToast(`Switched to ${nextTheme} theme`);
-    });
-    // Set initial icon
-    btn.setAttribute('icon', settings.theme === 'dark' ? 'light_mode' : 'dark_mode');
-  });
+  // Apply active theme (defaults to device system theme)
+  applyThemeToDocument(settings.theme);
 }
 
 function navigateToPage(pageValue) {

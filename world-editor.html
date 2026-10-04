@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>World Editor — Storyteller</title>
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('storyteller_user_settings');
+        var theme = raw ? JSON.parse(raw).theme : 'system';
+        var effective = (theme === 'system' || !theme)
+          ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        if (effective === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      } catch(e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>
@@ -17,19 +30,12 @@
       <md-navigation-rail-item icon="auto_stories" label="Play" value="play"></md-navigation-rail-item>
       <md-navigation-rail-item icon="public" label="Worlds" value="world-editor" active></md-navigation-rail-item>
       <md-navigation-rail-item icon="settings" label="Settings" value="settings"></md-navigation-rail-item>
-
-      <div slot="footer">
-        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Dark/Light Theme"></md-icon-button>
-      </div>
     </md-navigation-rail>
 
     <!-- Main Content Area -->
     <div class="main-content">
       <!-- Top App Bar -->
       <md-top-app-bar variant="small" headline="World Editor" subtitle="Design custom worlds, logic rules & characters">
-        <div slot="actions">
-          <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
-        </div>
       </md-top-app-bar>
 
       <div class="page-wrapper">
@@ -191,8 +197,8 @@
       <md-text-field id="char-role-input" variant="outlined" label="Role / Archetype"></md-text-field>
       <md-text-field id="char-bio-input" variant="outlined" label="Short Biography"></md-text-field>
 
-      <div id="char-gear-group">
-        <md-text-field id="char-gear-input" variant="outlined" label="Starting Equipment (Comma separated)"></md-text-field>
+      <div id="char-skills-group">
+        <md-text-field id="char-skills-input" variant="outlined" label="Skills (up to 5, comma-separated e.g. Magic, Bladesmanship, Stealth)" supporting-text="Max 5 skills (levels 0-5)"></md-text-field>
       </div>
 
       <div id="char-npc-group" style="display: none;">

@@ -301,13 +301,18 @@ function renderCharactersList(chars) {
     card.style.marginBottom = '10px';
 
     if (c.type === 'playable') {
+      const skillEntries = c.skills ? Object.entries(c.skills).slice(0, 5) : [];
+      const skillDisplay = skillEntries.length > 0
+        ? skillEntries.map(([k, v]) => `${k} (Lvl ${v})`).join(' • ')
+        : 'Default Skills';
+
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-weight: 700; font-size: 15px;">⚔️ ${escapeHtml(c.name)} <span style="font-size: 13px; color: var(--md-sys-color-secondary);">(${escapeHtml(c.role || 'Adventurer')})</span></div>
           <md-icon-button icon="delete" class="remove-char-btn" data-idx="${idx}"></md-icon-button>
         </div>
         <div style="font-size: 13px; color: var(--md-sys-color-on-surface);">${escapeHtml(c.bio || '')}</div>
-        <div style="font-size: 12px; color: var(--md-sys-color-secondary);">🎒 Gear: ${escapeHtml((c.equipment || []).join(', ') || 'None')}</div>
+        <div style="font-size: 12px; color: var(--md-sys-color-primary); font-weight: 500;">⚡ Skills: ${escapeHtml(skillDisplay)}</div>
       `;
       playableContainer.appendChild(card);
     } else {
@@ -341,18 +346,18 @@ function openCharacterSubDialog(type = 'playable') {
   document.getElementById('char-name-input').value = '';
   document.getElementById('char-role-input').value = '';
   document.getElementById('char-bio-input').value = '';
-  document.getElementById('char-gear-input').value = '';
+  if (document.getElementById('char-skills-input')) document.getElementById('char-skills-input').value = '';
   document.getElementById('char-faction-input').value = '';
   document.getElementById('char-secret-input').value = '';
 
-  const gearGroup = document.getElementById('char-gear-group');
+  const skillsGroup = document.getElementById('char-skills-group');
   const npcGroup = document.getElementById('char-npc-group');
   if (type === 'playable') {
-    gearGroup.style.display = 'block';
-    npcGroup.style.display = 'none';
+    if (skillsGroup) skillsGroup.style.display = 'block';
+    if (npcGroup) npcGroup.style.display = 'none';
   } else {
-    gearGroup.style.display = 'none';
-    npcGroup.style.display = 'block';
+    if (skillsGroup) skillsGroup.style.display = 'none';
+    if (npcGroup) npcGroup.style.display = 'block';
   }
 
   dialog.open = true;
@@ -381,9 +386,24 @@ document.getElementById('save-char-sub-btn')?.addEventListener('click', () => {
   };
 
   if (type === 'playable') {
-    const gearStr = document.getElementById('char-gear-input').value;
-    charObj.equipment = gearStr.split(',').map(s => s.trim()).filter(Boolean);
-    charObj.stats = { Strength: 14, Agility: 14, Intelligence: 14, Charisma: 12, Willpower: 14 };
+    const skillsInput = document.getElementById('char-skills-input')?.value || '';
+    const rawSkills = skillsInput.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
+    const skillsObj = {};
+    if (rawSkills.length > 0) {
+      rawSkills.forEach(s => {
+        const parts = s.split(':');
+        const skillName = parts[0].trim();
+        const skillLvl = parts[1] !== undefined ? Math.max(0, Math.min(5, parseInt(parts[1].trim(), 10) || 2)) : 2;
+        if (skillName) skillsObj[skillName] = skillLvl;
+      });
+    } else {
+      skillsObj['Combat'] = 3;
+      skillsObj['Agility'] = 2;
+      skillsObj['Arcana / Tech'] = 2;
+      skillsObj['Persuasion'] = 2;
+      skillsObj['Survival'] = 1;
+    }
+    charObj.skills = skillsObj;
   } else {
     charObj.faction = document.getElementById('char-faction-input').value.trim();
     charObj.secret = document.getElementById('char-secret-input').value.trim();

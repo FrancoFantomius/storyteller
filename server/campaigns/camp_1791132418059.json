@@ -1,0 +1,60 @@
+{
+  "id": "camp_1791132418059",
+  "title": "The Tale of Kaelen Ashthorn in The Shattered Realm of Aethelgard",
+  "worldId": "aethelgard",
+  "worldName": "The Shattered Realm of Aethelgard",
+  "character": {
+    "id": "char_1",
+    "name": "Kaelen Ashthorn",
+    "type": "playable",
+    "role": "Leyline Spellblade",
+    "bio": "A disgraced warden of the Citadel who bound an unstable lightning prism into a notched silver broadsword.",
+    "skills": {
+      "Leyline Magic": 3,
+      "Bladesmanship": 3,
+      "Acrobatics": 2,
+      "Arcana": 2,
+      "Perception": 2
+    }
+  },
+  "turnCount": 3,
+  "history": [
+    {
+      "id": "turn_0",
+      "type": "narrative",
+      "author": "Narrator",
+      "timestamp": "2026-10-04T16:46:58.059Z",
+      "text": "An abandoned dreadnought skyship drifts out of the perpetual thunderclouds above Cloudpeak Port. Its distress beacon pulses with ancient violet light.\n\nThe Shattered Realm of Aethelgard awaits your decision.",
+      "sceneMood": "adventure",
+      "suggestedActions": [
+        "I steer my skiff toward the dreadnought's open cargo bay and secure my grapple rope.",
+        "Converse with any nearby individuals",
+        "Venture down the primary path",
+        "Prepare your gear and weapons"
+      ]
+    },
+    {
+      "id": "turn_1791132439683",
+      "type": "action",
+      "author": "Kaelen Ashthorn",
+      "timestamp": "2026-10-04T16:47:19.683Z",
+      "text": "Venture down the primary path"
+    },
+    {
+      "id": "turn_1791132439688",
+      "type": "narrative",
+      "author": "Narrator",
+      "timestamp": "2026-10-04T16:47:19.688Z",
+      "text": "Responding to your intent, Venture down the primary path. The atmosphere shifts immediately as the consequences unfold across the scene.\n\nA gentle resonance hums through the crystalline leylines in the stonework. High above, archipelagos float against the clear sky like silent sentinels.\n\nA new detail comes into focus, revealing an unexpected opportunity to investigate or press forward.",
+      "suggestedActions": [
+        "Examine the immediate surroundings for hidden details.",
+        "Formulate a response utilizing your gear.",
+        "Speak with any nearby observers or companions.",
+        "Advance further along the primary pathway."
+      ],
+      "sceneMood": "adventure"
+    }
+  ],
+  "createdAt": "2026-10-04T16:46:58.059Z",
+  "updatedAt": "2026-10-04T16:47:19.689Z"
+}

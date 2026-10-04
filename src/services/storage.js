@@ -1,6 +1,13 @@
 // Local storage helper for Storyteller user settings
 const SETTINGS_KEY = 'storyteller_user_settings';
 
+export function getSystemTheme() {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+}
+
 export const DEFAULT_SETTINGS = {
   ollamaHost: 'http://localhost:11434',
   ollamaModel: 'llama3:latest',
@@ -9,7 +16,7 @@ export const DEFAULT_SETTINGS = {
   topP: 0.9,
   contextSize: 4096,
   maxTokens: 600,
-  theme: 'dark', // 'dark' | 'light'
+  theme: 'system', // 'system' | 'dark' | 'light'
   generateArt: true,
   autoSuggestActions: true,
   narrativeTone: 'Epic and richly descriptive',
@@ -40,10 +47,24 @@ export function saveSettings(settings) {
 }
 
 export function applyThemeToDocument(theme) {
-  const currentTheme = theme || getSettings().theme || 'dark';
-  if (currentTheme === 'dark') {
+  const chosen = theme || getSettings().theme || 'system';
+  const effectiveTheme = chosen === 'system' ? getSystemTheme() : chosen;
+
+  if (effectiveTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
   } else {
     document.documentElement.removeAttribute('data-theme');
   }
+}
+
+// Automatically react to system/device theme adjustments when theme is set to 'system'
+if (typeof window !== 'undefined' && window.matchMedia) {
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const s = getSettings();
+      if (s.theme === 'system' || !s.theme) {
+        applyThemeToDocument('system');
+      }
+    });
+  } catch (e) {}
 }

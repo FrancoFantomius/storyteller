@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Settings — Storyteller</title>
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('storyteller_user_settings');
+        var theme = raw ? JSON.parse(raw).theme : 'system';
+        var effective = (theme === 'system' || !theme)
+          ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        if (effective === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      } catch(e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>
@@ -17,10 +30,6 @@
       <md-navigation-rail-item icon="auto_stories" label="Play" value="play"></md-navigation-rail-item>
       <md-navigation-rail-item icon="public" label="Worlds" value="world-editor"></md-navigation-rail-item>
       <md-navigation-rail-item icon="settings" label="Settings" value="settings" active></md-navigation-rail-item>
-
-      <div slot="footer">
-        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
-      </div>
     </md-navigation-rail>
 
     <!-- Main Content Area -->
@@ -155,12 +164,16 @@
               <md-switch id="quick-sugg-switch" selected icons></md-switch>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div>
-                <div style="font-weight: 500; font-size: 14px;">Dark Mode Theme</div>
-                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Switch between Material Design 3 Dark and Light color schemes</div>
+                <div style="font-weight: 500; font-size: 14px;">App Theme</div>
+                <div style="font-size: 12px; color: var(--md-sys-color-secondary);">Choose your color theme (defaults to your device theme)</div>
               </div>
-              <md-switch id="theme-mode-switch" selected icons></md-switch>
+              <div id="theme-chips-container" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <md-chip variant="filter" class="theme-select-chip" data-theme="system" label="Device Theme" icon="settings_brightness"></md-chip>
+                <md-chip variant="filter" class="theme-select-chip" data-theme="dark" label="Dark" icon="dark_mode"></md-chip>
+                <md-chip variant="filter" class="theme-select-chip" data-theme="light" label="Light" icon="light_mode"></md-chip>
+              </div>
             </div>
           </div>
         </div>

@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Play Campaign — Storyteller</title>
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('storyteller_user_settings');
+        var theme = raw ? JSON.parse(raw).theme : 'system';
+        var effective = (theme === 'system' || !theme)
+          ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        if (effective === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      } catch(e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>
@@ -17,10 +30,6 @@
       <md-navigation-rail-item icon="auto_stories" label="Play" value="play" active></md-navigation-rail-item>
       <md-navigation-rail-item icon="public" label="Worlds" value="world-editor"></md-navigation-rail-item>
       <md-navigation-rail-item icon="settings" label="Settings" value="settings"></md-navigation-rail-item>
-
-      <div slot="footer">
-        <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
-      </div>
     </md-navigation-rail>
 
     <!-- Main Content Area -->
@@ -36,7 +45,6 @@
             <md-icon-button id="undo-btn" icon="undo" aria-label="Undo Turn"></md-icon-button>
             <md-icon-button id="lore-sheet-btn" icon="menu_book" aria-label="World Lore"></md-icon-button>
           </div>
-          <md-icon-button class="theme-toggle-btn" icon="light_mode" aria-label="Toggle Theme"></md-icon-button>
         </div>
       </md-top-app-bar>
 
@@ -112,6 +120,28 @@
       <md-button variant="text" onclick="document.getElementById('world-lore-side-sheet').open = false">Close</md-button>
     </div>
   </md-side-sheet>
+
+  <!-- Customize Character Skills Modal Dialog -->
+  <md-dialog id="customize-skills-dialog" headline="Customize Skills" style="--md-dialog-max-width: 480px; max-width: 480px; width: 95%;">
+    <div id="customize-skills-content" style="display: flex; flex-direction: column; gap: 12px; padding: 4px 0;">
+      <!-- Dynamically filled by play.js -->
+    </div>
+    <div slot="actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+      <md-button id="skills-dialog-cancel-btn" variant="text">Cancel</md-button>
+      <md-button id="skills-dialog-save-btn" variant="filled">Save</md-button>
+    </div>
+  </md-dialog>
+
+  <!-- Delete Campaign Confirmation Modal Dialog -->
+  <md-dialog id="delete-campaign-dialog" headline="Delete Story?" icon="delete_forever" style="--md-dialog-max-width: 440px; max-width: 440px; width: 95%;">
+    <p id="delete-campaign-dialog-message" style="font-size: 14px; line-height: 1.5; color: var(--md-sys-color-on-surface); margin: 0; padding: 4px 0;">
+      Are you sure you want to delete this story?
+    </p>
+    <div slot="actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+      <md-button id="delete-campaign-cancel-btn" variant="text">Cancel</md-button>
+      <md-button id="delete-campaign-confirm-btn" variant="filled" style="--md-sys-color-primary: var(--md-sys-color-error); --md-sys-color-on-primary: var(--md-sys-color-on-error);">Delete</md-button>
+    </div>
+  </md-dialog>
 
   <script type="module" src="/src/pages/play.js"></script>
 </body>

@@ -45,8 +45,10 @@ function populateSettingsForm() {
   document.getElementById('gen-art-switch').selected = settings.generateArt !== false;
   document.getElementById('quick-sugg-switch').selected = settings.autoSuggestActions !== false;
 
-  const themeSwitch = document.getElementById('theme-mode-switch');
-  themeSwitch.selected = settings.theme === 'dark';
+  const currentTheme = settings.theme || 'system';
+  document.querySelectorAll('.theme-select-chip').forEach(chip => {
+    chip.selected = chip.getAttribute('data-theme') === currentTheme;
+  });
 }
 
 function setupEventListeners() {
@@ -87,11 +89,17 @@ function setupEventListeners() {
     });
   });
 
-  // Theme switch
-  document.getElementById('theme-mode-switch')?.addEventListener('change', (e) => {
-    const isDark = e.target.selected;
-    saveSettings({ theme: isDark ? 'dark' : 'light' });
-    showToast(`Theme changed to ${isDark ? 'Dark' : 'Light'}`);
+  // Theme chips selector (Device theme / Dark / Light)
+  document.querySelectorAll('.theme-select-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const themeChoice = chip.getAttribute('data-theme') || 'system';
+      document.querySelectorAll('.theme-select-chip').forEach(c => {
+        c.selected = c.getAttribute('data-theme') === themeChoice;
+      });
+      saveSettings({ theme: themeChoice });
+      const label = themeChoice === 'system' ? 'Device Theme' : (themeChoice === 'dark' ? 'Dark Theme' : 'Light Theme');
+      showToast(`Theme changed to ${label}`);
+    });
   });
 
   // Reset to Defaults
@@ -181,7 +189,7 @@ function saveCurrentSettings() {
     narrativeTone: document.getElementById('narrative-tone-input').value.trim(),
     generateArt: document.getElementById('gen-art-switch').selected,
     autoSuggestActions: document.getElementById('quick-sugg-switch').selected,
-    theme: document.getElementById('theme-mode-switch').selected ? 'dark' : 'light',
+    theme: document.querySelector('.theme-select-chip[selected]')?.getAttribute('data-theme') || (getSettings().theme || 'system'),
   };
 
   saveSettings(updated);

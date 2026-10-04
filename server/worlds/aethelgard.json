@@ -35,14 +35,13 @@
       "type": "playable",
       "role": "Leyline Spellblade",
       "bio": "A disgraced warden of the Citadel who bound an unstable lightning prism into a notched silver broadsword.",
-      "stats": {
-        "Strength": 14,
-        "Agility": 16,
-        "Intelligence": 15,
-        "Charisma": 11,
-        "Willpower": 13
-      },
-      "equipment": ["Notched Silver Broadsword", "Rune-inscribed Leather Coat", "Aether Compass", "3x Leyline Prisms"]
+      "skills": {
+        "Leyline Magic": 3,
+        "Bladesmanship": 3,
+        "Acrobatics": 2,
+        "Arcana": 2,
+        "Perception": 2
+      }
     },
     {
       "id": "char_2",
@@ -50,14 +49,13 @@
       "type": "playable",
       "role": "Shadowweaver Arcanist",
       "bio": "An outcast noble scholar searching for the lost astrological grimoires of the Sunken Spire.",
-      "stats": {
-        "Strength": 8,
-        "Agility": 14,
-        "Intelligence": 18,
-        "Charisma": 15,
-        "Willpower": 16
-      },
-      "equipment": ["Ebony Focus Rod", "Velvet Celestial Cloak", "Astral Almanac", "Vial of Luminescent Ink"]
+      "skills": {
+        "Shadow Magic": 4,
+        "Astral Grimoires": 3,
+        "Investigation": 2,
+        "Diplomacy": 2,
+        "Stealth": 1
+      }
     },
     {
       "id": "char_3",
@@ -65,14 +63,13 @@
       "type": "playable",
       "role": "Skyship Skiff Captain",
       "bio": "A seasoned dwarven corsair and mechanic with a mechanical brass eye and an unshakable loyalty to his crew.",
-      "stats": {
-        "Strength": 17,
-        "Agility": 12,
-        "Intelligence": 13,
-        "Charisma": 14,
-        "Willpower": 15
-      },
-      "equipment": ["Aether Harpoon Pistol", "Hydraulic Wrench", "Heavy Welder Vest", "Bottle of Cloudfire Rum"]
+      "skills": {
+        "Skyship Piloting": 4,
+        "Engineering": 3,
+        "Heavy Harpoon": 3,
+        "Brawling": 1,
+        "Intimidation": 1
+      }
     },
     {
       "id": "char_npc_1",

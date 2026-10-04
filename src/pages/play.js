@@ -317,21 +317,66 @@ function renderHomeView() {
       loadCampaign(c.id);
     });
 
-    card.querySelector('.delete-story-btn').addEventListener('click', async () => {
-      if (confirm(`Delete the story set "${c.title}"?`)) {
-        try {
-          await deleteCampaign(c.id);
-          campaigns = campaigns.filter(item => item.id !== c.id);
-          showToast('Campaign deleted');
-          renderHomeView();
-        } catch (err) {
-          showToast('Error deleting campaign: ' + err.message);
-        }
-      }
+    card.querySelector('.delete-story-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      promptDeleteStory(c.id, c.title);
     });
 
     container.appendChild(card);
   });
+}
+
+function promptDeleteStory(campId, title) {
+  const dialog = document.getElementById('delete-campaign-dialog');
+  const msg = document.getElementById('delete-campaign-dialog-message');
+  const cancelBtn = document.getElementById('delete-campaign-cancel-btn');
+  const confirmBtn = document.getElementById('delete-campaign-confirm-btn');
+
+  if (!dialog) return;
+
+  if (msg) {
+    msg.textContent = `Are you sure you want to permanently delete "${title || 'this story'}"? All turns and progress will be removed.`;
+  }
+
+  const handleCancel = () => {
+    cleanup();
+    dialog.open = false;
+  };
+
+  const handleConfirm = async () => {
+    cleanup();
+    dialog.open = false;
+    try {
+      await deleteCampaign(campId);
+      campaigns = campaigns.filter(item => item.id !== campId);
+      showToast('Campaign deleted');
+      renderHomeView();
+    } catch (err) {
+      showToast('Error deleting campaign: ' + err.message);
+    }
+  };
+
+  const cleanup = () => {
+    cancelBtn?.removeEventListener('click', handleCancel);
+    confirmBtn?.removeEventListener('click', handleConfirm);
+  };
+
+  cancelBtn?.addEventListener('click', handleCancel);
+  confirmBtn?.addEventListener('click', handleConfirm);
+
+  dialog.open = true;
+
+  const removeFocus = () => {
+    if (cancelBtn) {
+      cancelBtn.blur();
+      cancelBtn.shadowRoot?.querySelector('button')?.blur();
+    }
+    if (document.activeElement === cancelBtn || document.activeElement?.closest?.('#delete-campaign-cancel-btn')) {
+      document.activeElement.blur();
+    }
+  };
+  requestAnimationFrame(removeFocus);
+  setTimeout(removeFocus, 50);
 }
 
 // -------------------------------------------------------------
@@ -578,7 +623,37 @@ function renderWorldSelectionStep(container) {
   updateGrid();
 }
 
-// Step 2: List of characters (name, brief descriptions, skills)
+const SKILL_TIERS = ['Inept', 'Novice', 'Competent', 'Adept', 'Expert', 'Master'];
+
+function normalizeCharacterSkills(char) {
+  if (char.skills && typeof char.skills === 'object') {
+    if (Array.isArray(char.skills)) {
+      return char.skills.slice(0, 5).map(s => {
+        if (typeof s === 'string') return { name: s, level: 2 };
+        return { name: s.name || 'Skill', level: Math.max(0, Math.min(5, Number(s.level) || 2)) };
+      });
+    }
+    return Object.entries(char.skills).slice(0, 5).map(([name, level]) => ({
+      name,
+      level: Math.max(0, Math.min(5, Number(level) || 2))
+    }));
+  }
+  if (char.stats && typeof char.stats === 'object') {
+    return Object.entries(char.stats).slice(0, 5).map(([name, val]) => ({
+      name,
+      level: Math.max(0, Math.min(5, Math.round((Number(val) || 12) / 4)))
+    }));
+  }
+  return [
+    { name: 'Combat', level: 3 },
+    { name: 'Agility', level: 2 },
+    { name: 'Arcana / Tech', level: 2 },
+    { name: 'Persuasion', level: 2 },
+    { name: 'Survival', level: 1 }
+  ];
+}
+
+// Step 2: List of characters (name, brief descriptions, Customize & Choose buttons)
 function renderCharacterSelectionStep(container, world) {
   const playables = (world.characters || []).filter(c => c.type === 'playable');
 
@@ -589,29 +664,34 @@ function renderCharacterSelectionStep(container, world) {
       name: 'The Lone Traveler',
       role: 'Wandering Adventurer',
       bio: `A capable and observant traveler who has ventured into the lands of ${world.name} seeking mystery and fortune.`,
-      stats: { Strength: 14, Agility: 14, Intelligence: 14, Charisma: 12, Willpower: 14 },
-      equipment: ['Sturdy Travel Cloak', 'Sidearm & Dagger', 'Exploration Journal', 'Survival Rations']
+      skills: {
+        Combat: 3,
+        Agility: 2,
+        Perception: 2,
+        Persuasion: 2,
+        Survival: 1
+      }
     }
   ];
 
+  // Map to hold custom skills per character
+  const characterCustomSkills = new Map();
+  characterList.forEach(c => {
+    characterCustomSkills.set(c.id, {
+      skills: normalizeCharacterSkills(c),
+      freePoints: 0
+    });
+  });
+
   container.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
-      <div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <md-button id="back-worlds-btn" variant="text" icon="arrow_back">Change World</md-button>
-          <h1 class="title-large" style="color: var(--md-sys-color-on-surface);">Choose Character</h1>
-        </div>
-        <p style="font-size: 14px; color: var(--md-sys-color-secondary); margin-top: 4px; margin-left: 8px;">
-          Select your protagonist for <strong>${escapeHtml(world.name)}</strong>
-        </p>
-      </div>
+    <div style="margin-bottom: 12px;">
+      <h1 class="title-large" style="color: var(--md-sys-color-on-surface);">Choose your Character</h1>
+      <p style="font-size: 14px; line-height: 1.5; color: var(--md-sys-color-secondary); margin-top: 6px;">
+        ${escapeHtml(world.description || world.setting || '')}
+      </p>
     </div>
     <div id="characters-grid-container" class="grid-2"></div>
   `;
-
-  container.querySelector('#back-worlds-btn')?.addEventListener('click', () => {
-    navigateToNewStory();
-  });
 
   const grid = container.querySelector('#characters-grid-container');
 
@@ -623,24 +703,6 @@ function renderCharacterSelectionStep(container, world) {
     card.style.display = 'flex';
     card.style.flexDirection = 'column';
     card.style.justifyContent = 'space-between';
-
-    // Format skills / stats
-    const statsHtml = char.stats ? Object.entries(char.stats).map(([k, v]) => `
-      <div class="stat-badge">
-        <span class="stat-name">${escapeHtml(k.substring(0, 3).toUpperCase())}</span>
-        <span class="stat-val">${escapeHtml(v)}</span>
-      </div>
-    `).join('') : '';
-
-    // Format equipment
-    const gearHtml = (char.equipment && char.equipment.length > 0) ? `
-      <div style="margin-top: 10px;">
-        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-sys-color-secondary);">Equipment</span>
-        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
-          ${char.equipment.map(eq => `<span class="badge-pill secondary" style="font-size: 11px;">${escapeHtml(eq)}</span>`).join('')}
-        </div>
-      </div>
-    ` : '';
 
     card.innerHTML = `
       <div>
@@ -656,33 +718,185 @@ function renderCharacterSelectionStep(container, world) {
           <md-icon name="person" style="color: var(--md-sys-color-primary);"></md-icon>
         </div>
 
-        <p style="font-size: 13px; line-height: 1.5; color: var(--md-sys-color-on-surface); margin: 10px 0;">
+        <p style="font-size: 13px; line-height: 1.5; color: var(--md-sys-color-on-surface); margin: 10px 0 16px 0;">
           ${escapeHtml(char.bio || 'No background description provided.')}
         </p>
-
-        ${statsHtml ? `
-          <div style="margin-top: 8px;">
-            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-sys-color-secondary);">Skills & Attributes</span>
-            <div class="character-stats-grid">${statsHtml}</div>
-          </div>
-        ` : ''}
-
-        ${gearHtml}
       </div>
 
-      <div style="margin-top: 20px;">
-        <md-button variant="filled" icon="play_arrow" class="start-char-story-btn" style="width: 100%;">
-          Begin Roll 1 as ${escapeHtml(char.name.split(' ')[0])}
+      <div style="display: flex; gap: 10px; margin-top: auto; padding-top: 12px;">
+        <md-button variant="outlined" class="customize-char-btn" style="flex: 1;">
+          Customize
+        </md-button>
+        <md-button variant="filled" class="choose-char-btn" style="flex: 1;">
+          Choose
         </md-button>
       </div>
     `;
 
-    card.addEventListener('click', async (e) => {
-      await startNewCampaignWithCharacter(world, char);
+    // Customize button opens the skills customization modal
+    card.querySelector('.customize-char-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSkillsCustomizationModal(char, characterCustomSkills);
+    });
+
+    // Choose button starts story
+    card.querySelector('.choose-char-btn')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const customData = characterCustomSkills.get(char.id) || { skills: normalizeCharacterSkills(char), freePoints: 0 };
+      if (customData.freePoints > 0) {
+        showToast(`Please allocate your remaining ${customData.freePoints} free point(s) first.`);
+        openSkillsCustomizationModal(char, characterCustomSkills);
+        return;
+      }
+      const skillsObj = {};
+      customData.skills.forEach(s => {
+        skillsObj[s.name] = s.level;
+      });
+      const finalChar = {
+        ...char,
+        skills: skillsObj
+      };
+      await startNewCampaignWithCharacter(world, finalChar);
     });
 
     grid.appendChild(card);
   });
+}
+
+// Modal dialog controller for customizing character skills
+function openSkillsCustomizationModal(char, characterCustomSkills) {
+  const dialog = document.getElementById('customize-skills-dialog');
+  const content = document.getElementById('customize-skills-content');
+  const cancelBtn = document.getElementById('skills-dialog-cancel-btn');
+  const saveBtn = document.getElementById('skills-dialog-save-btn');
+
+  if (!dialog || !content) return;
+
+  dialog.setAttribute('headline', char.name);
+
+  const stored = characterCustomSkills.get(char.id) || { skills: normalizeCharacterSkills(char), freePoints: 0 };
+  let tempSkills = stored.skills.map(s => ({ ...s }));
+  let tempFreePoints = stored.freePoints;
+
+  const renderModalContent = () => {
+    content.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--md-sys-color-surface-container-highest);">
+        <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--md-sys-color-secondary);">
+          Skills
+        </span>
+        <span style="font-size: 13px; font-weight: 600; color: ${tempFreePoints > 0 ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-secondary)'};">
+          Free points: ${tempFreePoints}
+        </span>
+      </div>
+
+      <div class="skills-stepper-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+        ${tempSkills.map((skill, idx) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 600; color: var(--md-sys-color-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${escapeHtml(skill.name)}
+              </div>
+              <div style="font-size: 12px; color: var(--md-sys-color-primary); font-weight: 500;">
+                Level ${skill.level} • ${SKILL_TIERS[skill.level] || 'Novice'}
+              </div>
+            </div>
+
+            <div style="display: inline-flex; align-items: center; gap: 4px; background: var(--md-sys-color-surface-container-high); border-radius: 20px; padding: 2px 6px;">
+              <md-icon-button
+                icon="remove"
+                class="modal-skill-dec-btn"
+                data-idx="${idx}"
+                style="--md-icon-button-size: 30px; --md-icon-size: 18px;"
+                ${skill.level <= 0 ? 'disabled' : ''}
+                aria-label="Decrease ${escapeHtml(skill.name)}"
+              ></md-icon-button>
+              <span style="min-width: 20px; text-align: center; font-weight: 700; font-size: 14px; color: var(--md-sys-color-on-surface);">
+                ${skill.level}
+              </span>
+              <md-icon-button
+                icon="add"
+                class="modal-skill-inc-btn"
+                data-idx="${idx}"
+                style="--md-icon-button-size: 30px; --md-icon-size: 18px;"
+                ${(skill.level >= 5 || tempFreePoints <= 0) ? 'disabled' : ''}
+                aria-label="Increase ${escapeHtml(skill.name)}"
+              ></md-icon-button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    content.querySelectorAll('.modal-skill-dec-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (tempSkills[idx] && tempSkills[idx].level > 0) {
+          tempSkills[idx].level--;
+          tempFreePoints++;
+          renderModalContent();
+        }
+      });
+    });
+
+    content.querySelectorAll('.modal-skill-inc-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (tempFreePoints > 0 && tempSkills[idx] && tempSkills[idx].level < 5) {
+          tempSkills[idx].level++;
+          tempFreePoints--;
+          renderModalContent();
+        } else if (tempFreePoints === 0) {
+          showToast('Decrease another skill first to get free points.');
+        }
+      });
+    });
+  };
+
+  const handleSave = () => {
+    cleanupListeners();
+    if (tempFreePoints > 0) {
+      showToast(`Please allocate your remaining ${tempFreePoints} free point(s) before saving.`);
+      return;
+    }
+    characterCustomSkills.set(char.id, {
+      skills: tempSkills,
+      freePoints: tempFreePoints
+    });
+    dialog.open = false;
+    showToast(`Skills saved for ${char.name}!`);
+  };
+
+  const handleCancel = () => {
+    cleanupListeners();
+    dialog.open = false;
+  };
+
+  const cleanupListeners = () => {
+    saveBtn?.removeEventListener('click', handleSave);
+    cancelBtn?.removeEventListener('click', handleCancel);
+  };
+
+  saveBtn?.addEventListener('click', handleSave);
+  cancelBtn?.addEventListener('click', handleCancel);
+
+  renderModalContent();
+  dialog.open = true;
+
+  const removeCancelFocus = () => {
+    if (cancelBtn) {
+      cancelBtn.blur();
+      cancelBtn.shadowRoot?.querySelector('button')?.blur();
+    }
+    if (document.activeElement === cancelBtn || document.activeElement?.closest?.('#skills-dialog-cancel-btn')) {
+      document.activeElement.blur();
+    }
+  };
+
+  requestAnimationFrame(removeCancelFocus);
+  setTimeout(removeCancelFocus, 50);
+  setTimeout(removeCancelFocus, 150);
 }
 
 // Step 3: "only after having selected the character the roll 1 begins"
