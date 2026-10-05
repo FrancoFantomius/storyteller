@@ -14,8 +14,19 @@ from pydantic import BaseModel, Field
 # Base paths
 SERVER_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SERVER_DIR.parent
-GENERATED_IMAGES_DIR = SERVER_DIR / "generated_images"
-SYSTEM_PROMPT_FILE = ROOT_DIR / "system.txt"
+DATA_DIR = Path(os.environ.get("DATA_DIR", SERVER_DIR))
+GENERATED_IMAGES_DIR = DATA_DIR / "generated_images"
+
+def get_system_prompt_file() -> Path:
+    custom_system = DATA_DIR / "system.txt"
+    if custom_system.exists() and custom_system.is_file():
+        return custom_system
+    root_system = ROOT_DIR / "system.txt"
+    if root_system.exists() and root_system.is_file():
+        return root_system
+    return custom_system
+
+SYSTEM_PROMPT_FILE = get_system_prompt_file()
 
 # Default environment hosts (configurable for Docker or host execution)
 DEFAULT_LLAMACPP_HOST = os.environ.get("LLM_HOST", "http://localhost:8080")
@@ -96,10 +107,11 @@ async def check_diffusers_status(host: str = Query(default=DEFAULT_DIFFUSERS_HOS
 # ---------------------------------------------------------------------------
 
 def load_system_prompt_template() -> str:
-    """Reads system.txt from the workspace root or provides a robust fallback."""
-    if SYSTEM_PROMPT_FILE.exists():
+    """Reads system.txt from data or workspace root or provides a robust fallback."""
+    prompt_file = get_system_prompt_file()
+    if prompt_file.exists() and prompt_file.is_file():
         try:
-            with open(SYSTEM_PROMPT_FILE, "r", encoding="utf-8") as f:
+            with open(prompt_file, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if content:
                     return content

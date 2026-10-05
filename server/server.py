@@ -15,9 +15,10 @@ from fastapi.staticfiles import StaticFiles
 SERVER_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SERVER_DIR.parent
 DIST_DIR = ROOT_DIR / "dist"
-WORLDS_DIR = SERVER_DIR / "worlds"
-CAMPAIGNS_DIR = SERVER_DIR / "campaigns"
-GENERATED_IMAGES_DIR = SERVER_DIR / "generated_images"
+DATA_DIR = Path(os.environ.get("DATA_DIR", SERVER_DIR))
+WORLDS_DIR = DATA_DIR / "worlds"
+CAMPAIGNS_DIR = DATA_DIR / "campaigns"
+GENERATED_IMAGES_DIR = DATA_DIR / "generated_images"
 
 # Ensure storage directories exist
 WORLDS_DIR.mkdir(parents=True, exist_ok=True)

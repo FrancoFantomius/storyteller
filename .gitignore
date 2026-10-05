@@ -10,6 +10,10 @@ dist/
 dist-ssr/
 *.local
 
+# AI Models
+models/
+hf_cache/
+
 # Python Environments & Bytecode
 __pycache__/
 *.py[cod]

@@ -92,6 +92,7 @@ def load_diffusion_pipeline(model_id_or_path: str):
     if not model_path.exists() and (Path(LOCAL_MODELS_DIR) / model_id_or_path).exists():
         model_id_or_path = str(Path(LOCAL_MODELS_DIR) / model_id_or_path)
 
+    hf_token = os.environ.get("HF_TOKEN") or None
     try:
         pipe = AutoPipelineForText2Image.from_pretrained(
             model_id_or_path,
@@ -99,6 +100,7 @@ def load_diffusion_pipeline(model_id_or_path: str):
             variant="fp16" if DTYPE == torch.float16 else None,
             use_safetensors=True,
             cache_dir=HF_CACHE_DIR,
+            token=hf_token,
         )
     except Exception as e:
         logger.warning(f"AutoPipeline failed, trying generic DiffusionPipeline: {e}")
@@ -106,6 +108,7 @@ def load_diffusion_pipeline(model_id_or_path: str):
             model_id_or_path,
             torch_dtype=DTYPE,
             cache_dir=HF_CACHE_DIR,
+            token=hf_token,
         )
 
     pipe = pipe.to(DEVICE)
