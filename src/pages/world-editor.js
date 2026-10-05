@@ -41,64 +41,42 @@ async function loadWorldsList() {
     if (emptyState) emptyState.style.display = 'none';
 
     worlds.forEach(w => {
-      const card = document.createElement('md-card');
-      card.setAttribute('variant', 'outlined');
+      const card = document.createElement('div');
       card.className = 'surface-card';
       card.style.display = 'flex';
       card.style.flexDirection = 'column';
-      card.style.gap = '14px';
+      card.style.justifyContent = 'space-between';
+      card.style.padding = '8px 14px';
+      card.style.borderRadius = 'var(--md-sys-shape-corner-large)';
+      card.style.border = '1px solid var(--md-sys-color-outline-variant)';
+      card.style.backgroundColor = 'var(--md-sys-color-surface-container-low)';
 
-      const playableCount = (w.characters || []).filter(c => c.type === 'playable').length;
-      const npcCount = (w.characters || []).filter(c => c.type === 'npc').length;
-      const logicCount = (w.logic || []).length;
+      const rawDesc = (w.description || w.setting || '').trim();
+      const words = rawDesc.split(/\s+/).filter(Boolean);
+      const desc = words.length > 15 ? words.slice(0, 15).join(' ') + '...' : rawDesc;
 
       card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-          <div style="display: flex; gap: 12px; align-items: center;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: ${w.coverColor || '#6750A4'}; display: flex; align-items: center; justify-content: center; color: white;">
-              <md-icon name="${w.coverIcon || 'fort'}" size="24"></md-icon>
-            </div>
-            <div>
-              <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${escapeHtml(w.name)}</h3>
-              <span style="font-size: 13px; color: var(--md-sys-color-secondary);">${escapeHtml(w.genre || 'Adventure')}</span>
-            </div>
-          </div>
-          <span class="badge-pill primary">${logicCount} Rules</span>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 2px;">
+          <h3 style="font-size: 16px; font-weight: 700; margin: 0; line-height: 1.3;">${escapeHtml(w.name)}</h3>
+          <p style="font-size: 13px; color: var(--md-sys-color-on-surface); line-height: 1.4; margin: 0;">
+            ${escapeHtml(desc)}
+          </p>
         </div>
 
-        <p style="font-size: 14px; color: var(--md-sys-color-on-surface); line-height: 1.5; flex: 1;">
-          ${escapeHtml(w.description || (w.setting || '').slice(0, 150) + '...')}
-        </p>
-
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-          <span class="badge-pill secondary">🎭 ${playableCount} Playable</span>
-          <span class="badge-pill tertiary">👥 ${npcCount} NPCs</span>
-        </div>
-
-        <md-divider></md-divider>
-
-        <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-          <div style="display: flex; gap: 4px;">
-            <md-button variant="filled" icon="play_arrow" class="play-world-btn" data-id="${w.id}">Play</md-button>
-            <md-button variant="tonal" icon="edit" class="edit-world-btn" data-id="${w.id}">Edit</md-button>
-          </div>
-          <div style="display: flex; gap: 4px;">
-            <md-icon-button icon="drive_file_rename_outline" class="rename-world-btn" data-id="${w.id}" aria-label="Rename World"></md-icon-button>
-            <md-icon-button icon="content_copy" class="duplicate-world-btn" data-id="${w.id}" aria-label="Duplicate World"></md-icon-button>
-            <md-icon-button icon="delete" class="delete-world-btn" data-id="${w.id}" aria-label="Delete World"></md-icon-button>
+        <div style="display: flex; flex-direction: column; margin-top: 10px;">
+          <md-divider style="margin-bottom: 8px;"></md-divider>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; gap: 4px;">
+            <md-button variant="filled" icon="edit" class="edit-world-btn" data-id="${w.id}">Edit</md-button>
+            <div style="display: flex; gap: 2px; align-items: center;">
+              <md-icon-button icon="drive_file_rename_outline" class="rename-world-btn" data-id="${w.id}" aria-label="Rename World"></md-icon-button>
+              <md-icon-button icon="content_copy" class="duplicate-world-btn" data-id="${w.id}" aria-label="Duplicate World"></md-icon-button>
+              <md-icon-button icon="delete" class="delete-world-btn" data-id="${w.id}" aria-label="Delete World"></md-icon-button>
+            </div>
           </div>
         </div>
       `;
 
       container.appendChild(card);
-    });
-
-    // Attach card action listeners
-    container.querySelectorAll('.play-world-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        window.location.href = `/play.html?worldId=${id}`;
-      });
     });
 
     container.querySelectorAll('.edit-world-btn').forEach(btn => {

@@ -33,50 +33,48 @@
 
     <!-- Main Content Area -->
     <div class="main-content">
-      <!-- Top App Bar -->
-      <md-top-app-bar variant="small" headline="World Editor" subtitle="Design custom worlds, logic rules & characters">
-      </md-top-app-bar>
-
       <div class="page-wrapper">
-        <!-- AI Prompt Box at the Top -->
-        <div class="surface-card" style="border: 1px solid var(--md-sys-color-primary); background: linear-gradient(135deg, var(--md-sys-color-surface-container-low), var(--md-sys-color-surface-container));">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <md-icon name="auto_awesome"></md-icon>
-            <h2 class="title-medium" style="color: var(--md-sys-color-primary);">World Generator</h2>
-          </div>
-          <p style="font-size: 14px; margin-bottom: 16px; color: var(--md-sys-color-secondary);">
-            Describe a brief universe concept below to automatically generate setting lore, logic constraints, and characters.
-          </p>
+        <h1 class="title-large" style="font-size: 28px; font-weight: 700; color: var(--md-sys-color-on-surface); margin: 0;">World Editor</h1>
 
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <div style="flex: 1; min-width: 280px;">
-              <md-text-field
-                id="ai-world-prompt-input"
-                variant="outlined"
-                label="World Concept / Theme"
-                leading-icon="public"
-                style="width: 100%;"
-              ></md-text-field>
-            </div>
-            <md-button id="ai-generate-world-btn" variant="filled" icon="auto_awesome">
+        <!-- World Generator Section -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <h2 class="title-medium">World Generator</h2>
+            <p style="font-size: 13px; color: var(--md-sys-color-secondary);">
+              Describe a brief universe concept below to automatically generate setting lore, logic constraints, and characters.
+            </p>
+          </div>
+
+          <md-text-field
+            id="ai-world-prompt-input"
+            variant="outlined"
+            label="World Concept"
+            leading-icon="public"
+            style="width: 100%;"
+          ></md-text-field>
+
+          <div style="display: flex; justify-content: center;">
+            <md-button id="ai-generate-world-btn" variant="filled">
               Generate World
             </md-button>
           </div>
         </div>
 
+        <md-divider></md-divider>
+
         <!-- Action Bar: Scratch vs Existing -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
           <div>
             <h2 class="title-medium">Custom Worlds</h2>
-            <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Saved on server in <code>/server/worlds</code></p>
+            <p style="font-size: 13px; color: var(--md-sys-color-secondary);">Design a new world exactly like you want. Or modify an existing one</p>
           </div>
 
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <md-button id="create-scratch-btn" variant="filled" icon="add">
-              Create New World
+          <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+            <md-button id="create-scratch-btn" variant="filled">
+              Create World
             </md-button>
-            <md-button id="clone-existing-btn" variant="tonal" icon="content_copy">
-              Create from Existing World
+            <md-button id="clone-existing-btn" variant="tonal">
+              Edit World
             </md-button>
           </div>
         </div>
