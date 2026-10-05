@@ -80,6 +80,16 @@ export async function deleteCampaign(id) {
   return await res.json();
 }
 
+export async function generateWorldIcon(loreData) {
+  const res = await fetch('/api/ai/generate-world-icon', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(loreData),
+  });
+  if (!res.ok) throw new Error('Failed to generate world icon');
+  return await res.json();
+}
+
 export async function checkLlamaCppStatus(host = 'http://localhost:8080') {
   try {
     const res = await fetch(`/api/llamacpp/status?host=${encodeURIComponent(host)}`);
@@ -90,9 +100,10 @@ export async function checkLlamaCppStatus(host = 'http://localhost:8080') {
   }
 }
 
-export async function checkDiffusersStatus(host = 'http://localhost:8001') {
+export async function checkDiffusersStatus(host = '') {
   try {
-    const res = await fetch(`/api/diffusers/status?host=${encodeURIComponent(host)}`);
+    const url = host ? `/api/diffusers/status?host=${encodeURIComponent(host)}` : '/api/diffusers/status';
+    const res = await fetch(url);
     if (!res.ok) return { online: false };
     return await res.json();
   } catch (err) {

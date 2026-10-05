@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Model Downloader for Storyteller
-Downloads AI models to host storage (models/llm, hf_cache) using huggingface_hub.
+Downloads AI models directly to host storage (models/llm, models/diffusers) using huggingface_hub.
 """
 
 import os
@@ -21,7 +21,6 @@ ROOT_DIR = Path(__file__).resolve().parent
 MODELS_DIR = ROOT_DIR / "models"
 LLM_DIR = MODELS_DIR / "llm"
 DIFFUSERS_DIR = MODELS_DIR / "diffusers"
-HF_CACHE_DIR = ROOT_DIR / "hf_cache"
 
 
 def load_env_file(env_path: Path):
@@ -81,19 +80,26 @@ def download_llm_model(repo_id: str, filename: str, revision: str = "main", toke
 
 
 def download_diffusers_model(model_id: str, token: str = None):
-    """Pre-caches HuggingFace Diffusers model using huggingface_hub snapshot_download."""
-    HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    """Downloads HuggingFace Diffusers model directly into models/diffusers."""
     DIFFUSERS_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"\n=== Downloading Diffusers Model ({model_id}) ===")
+    slug = model_id.split("/")[-1] if "/" in model_id else model_id
+    target_dir = DIFFUSERS_DIR / slug
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    if (target_dir / "model_index.json").exists():
+        print(f"[+] Diffusers Model already exists at {target_dir}. Skipping.")
+        return
+
+    print(f"\n=== Downloading Diffusers Model ({model_id}) to {target_dir} ===")
     
     snapshot_download(
         repo_id=model_id,
-        cache_dir=str(HF_CACHE_DIR),
+        local_dir=str(target_dir),
         token=token,
-        allow_patterns=["*.json", "*.txt", "*.fp16.safetensors", "unet/diffusion_pytorch_model.safetensors", "vae/*", "text_encoder/*"],
-        ignore_patterns=["*.bin", "*.onnx*", "*.msgpack"]
+        allow_patterns=["*.json", "*.txt", "*.fp16.safetensors", "*.safetensors", "unet/*", "vae/*", "text_encoder/*", "tokenizer/*", "scheduler/*"],
+        ignore_patterns=["*.bin", "*.onnx*", "*.msgpack", "*.pt", "*.ckpt"]
     )
-    print(f"[+] Model '{model_id}' successfully cached in {HF_CACHE_DIR}.")
+    print(f"[+] Model '{model_id}' successfully downloaded to {target_dir}.")
 
 
 def main():

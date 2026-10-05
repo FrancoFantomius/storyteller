@@ -101,88 +101,85 @@
   </md-navigation-bar>
 
   <!-- World Editor Main Full Dialog -->
-  <md-dialog id="world-editor-dialog" headline="World Studio" icon="public" style="--md-dialog-max-width: 820px; max-width: 820px; width: 95%;">
-    <div style="display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; padding-right: 6px;">
+  <md-dialog id="world-editor-dialog" headline="World Studio" icon="public">
+    <div style="display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; overflow-x: hidden; width: 100%; box-sizing: border-box; padding: 2px 2px;">
       <h3 id="editor-dialog-headline" class="title-small" style="color: var(--md-sys-color-primary);">World Overview</h3>
 
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <div style="flex: 2; min-width: 260px;">
-          <md-text-field id="world-name-input" variant="outlined" label="World Name" required style="width: 100%;"></md-text-field>
-        </div>
-        <div style="flex: 1; min-width: 160px;">
-          <md-text-field id="world-genre-input" variant="outlined" label="Genre" style="width: 100%;"></md-text-field>
-        </div>
-      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+        <md-text-field id="world-name-input" variant="outlined" label="World Name" required style="width: 100%;"></md-text-field>
+        <md-text-field id="world-genre-input" variant="outlined" label="Genre" style="width: 100%;"></md-text-field>
+        <md-text-field id="world-tone-input" variant="outlined" label="Narrative Tone" style="width: 100%;"></md-text-field>
+        <md-text-field id="world-desc-input" variant="outlined" label="Short Summary" style="width: 100%;"></md-text-field>
 
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <div style="flex: 2; min-width: 260px;">
-          <md-text-field id="world-tone-input" variant="outlined" label="Narrative Tone" style="width: 100%;"></md-text-field>
+        <div>
+          <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 6px; color: var(--md-sys-color-on-surface);">Setting & World Lore:</label>
+          <textarea id="world-setting-input" rows="4" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: var(--md-sys-shape-corner-medium); border: 1px solid var(--md-sys-color-outline); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
         </div>
-        <div style="flex: 1; min-width: 120px;">
-          <md-text-field id="world-color-input" variant="outlined" label="Theme Color" value="#6750A4" style="width: 100%;"></md-text-field>
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <md-text-field id="world-icon-input" variant="outlined" label="Icon Name" value="fort" style="width: 100%;"></md-text-field>
-        </div>
-      </div>
-
-      <md-text-field id="world-desc-input" variant="outlined" label="Short Summary" style="width: 100%;"></md-text-field>
-
-      <div>
-        <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 6px;">Setting & World Lore:</label>
-        <textarea id="world-setting-input" rows="4" style="width: 100%; padding: 12px; border-radius: var(--md-sys-shape-corner-medium); border: 1px solid var(--md-sys-color-outline); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: inherit; font-size: 14px;"></textarea>
       </div>
 
       <md-divider></md-divider>
 
       <!-- Immutable Logic Rules -->
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div>
-            <h4 style="font-size: 16px; font-weight: 700;">Immutable World Logic & Rules</h4>
-            <p style="font-size: 12px; color: var(--md-sys-color-secondary);">Specific rules the narrator will strictly obey</p>
-          </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <div>
+          <h4 style="font-size: 15px; font-weight: 700;">Immutable World Logic & Rules</h4>
+          <p style="font-size: 12px; color: var(--md-sys-color-secondary);">Specific rules the narrator will strictly obey</p>
         </div>
 
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <md-text-field id="new-logic-rule-input" variant="outlined" label="New Rule" style="flex: 1;"></md-text-field>
+        <md-text-field id="new-logic-rule-input" variant="outlined" label="New Rule" style="width: 100%;"></md-text-field>
+        <div style="display: flex; justify-content: flex-end; width: 100%;">
           <md-button id="add-logic-rule-btn" variant="tonal" icon="add">Add Rule</md-button>
         </div>
 
-        <div id="logic-rules-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        <div id="logic-rules-list" style="display: flex; flex-wrap: wrap; gap: 6px; width: 100%;"></div>
       </div>
 
       <md-divider></md-divider>
 
       <!-- Characters Studio -->
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h4 style="font-size: 16px; font-weight: 700;">Characters Studio</h4>
+            <h4 style="font-size: 15px; font-weight: 700;">Characters Studio</h4>
             <p style="font-size: 12px; color: var(--md-sys-color-secondary);">Playable archetypes and key NPCs</p>
           </div>
-          <div style="display: flex; gap: 6px;">
-            <md-button id="add-playable-char-btn" variant="tonal" icon="person_add">Add Playable</md-button>
-            <md-button id="add-npc-char-btn" variant="outlined" icon="group_add">Add NPC</md-button>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+            <md-button id="add-playable-char-btn" variant="tonal" icon="person_add">Character</md-button>
+            <md-button id="add-npc-char-btn" variant="outlined" icon="group_add">NPC</md-button>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 100%;">
           <div>
-            <h5 style="font-size: 14px; margin-bottom: 8px; color: var(--md-sys-color-primary);">Playable Characters</h5>
+            <h5 style="font-size: 13px; margin-bottom: 6px; color: var(--md-sys-color-primary); font-weight: 600;">Playable Characters</h5>
             <div id="playable-chars-list"></div>
           </div>
           <div>
-            <h5 style="font-size: 14px; margin-bottom: 8px; color: var(--md-sys-color-tertiary);">Non-Playable Characters (NPCs)</h5>
+            <h5 style="font-size: 13px; margin-bottom: 6px; color: var(--md-sys-color-tertiary); font-weight: 600;">Non-Playable Characters (NPCs)</h5>
             <div id="npc-chars-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <md-divider></md-divider>
+
+      <!-- World Icon Generation Section -->
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; align-items: center;">
+        <div style="display: flex; justify-content: center; width: 100%;">
+          <md-button id="generate-icon-btn" variant="tonal" icon="palette">Generate Icon</md-button>
+        </div>
+
+        <div id="world-icon-preview-container" style="display: none; justify-content: center; align-items: center; margin-top: 4px;">
+          <div id="world-icon-preview-box" style="width: 44px; height: 44px; border-radius: 12px; background: #6750A4; display: flex; align-items: center; justify-content: center; color: white;">
+            <md-icon id="world-icon-preview-icon" name="public" size="26"></md-icon>
           </div>
         </div>
       </div>
     </div>
 
-    <div slot="actions">
+    <div slot="actions" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
       <md-button id="cancel-world-btn" variant="text">Cancel</md-button>
-      <md-button id="save-world-btn" variant="filled" icon="save">Save to Server</md-button>
+      <md-button id="save-world-btn" variant="filled" icon="save">Save</md-button>
     </div>
   </md-dialog>
 

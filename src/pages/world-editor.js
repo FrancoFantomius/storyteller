@@ -11,7 +11,7 @@ import '@francofantomius/material-components/loading-indicator';
 import '@francofantomius/material-components/badge';
 import '@francofantomius/material-components/tabs';
 import { setupNavigation, showToast } from '../components/nav-bar.js';
-import { fetchWorlds, createWorld, updateWorld, deleteWorld } from '../services/api.js';
+import { fetchWorlds, createWorld, updateWorld, deleteWorld, generateWorldIcon } from '../services/api.js';
 import { generateWorldFromPrompt } from '../services/llm.js';
 
 let worlds = [];
@@ -150,36 +150,16 @@ function setupEventListeners() {
   document.getElementById('create-scratch-btn').addEventListener('click', () => {
     currentEditingWorld = {
       id: 'world_' + Date.now(),
-      name: 'New Custom World',
-      genre: 'Fantasy / Sci-Fi',
-      tone: 'Atmospheric and immersive',
-      description: 'A newly created universe waiting to be shaped.',
-      coverColor: '#6750A4',
-      coverIcon: 'fort',
-      setting: 'Describe the geography, factions, atmosphere, and mysteries of this world.',
-      logic: [
-        'Actions have permanent narrative consequences.',
-        'Magic and technology function under specific logical constraints.',
-      ],
-      characters: [
-        {
-          id: 'char_1',
-          name: 'Hero Protagonist',
-          type: 'playable',
-          role: 'Adventurer',
-          bio: 'The brave lead character venturing into the unknown.',
-          stats: { Strength: 14, Agility: 14, Intelligence: 14, Charisma: 12, Willpower: 14 },
-          equipment: ['Sturdy Boots', 'Travel Cloak', 'Sidearm / Weapon', 'Rations'],
-        },
-      ],
-      scenarios: [
-        {
-          id: 'scen_1',
-          title: 'The Beginning of the Journey',
-          description: 'You arrive at the threshold of the mysterious uncharted zone.',
-          starterAction: 'I survey the horizon and take my first steps forward.',
-        },
-      ],
+      name: '',
+      genre: '',
+      tone: '',
+      description: '',
+      coverColor: '',
+      coverIcon: '',
+      setting: '',
+      logic: [],
+      characters: [],
+      scenarios: [],
     };
     populateEditorForm(currentEditingWorld);
     document.getElementById('world-editor-dialog').open = true;
@@ -222,6 +202,40 @@ function setupEventListeners() {
   document.getElementById('add-npc-char-btn').addEventListener('click', () => {
     openCharacterSubDialog('npc');
   });
+
+  // Generate Icon from Lore
+  const generateIconBtn = document.getElementById('generate-icon-btn');
+  generateIconBtn?.addEventListener('click', async () => {
+    const lore = document.getElementById('world-setting-input').value.trim();
+    const name = document.getElementById('world-name-input').value.trim();
+    const genre = document.getElementById('world-genre-input').value.trim();
+    const description = document.getElementById('world-desc-input').value.trim();
+    const tone = document.getElementById('world-tone-input').value.trim();
+
+    if (!lore && !name && !description) {
+      showToast('Please enter some setting lore or description first');
+      return;
+    }
+
+    generateIconBtn.setAttribute('loading', '');
+    generateIconBtn.disabled = true;
+
+    try {
+      showToast('Generating icon from lore...');
+      const res = await generateWorldIcon({ name, genre, lore, description, tone });
+      if (res && res.icon) {
+        currentEditingWorld.coverIcon = res.icon;
+        currentEditingWorld.coverColor = res.color || '#6750A4';
+        updateIconPreview(res.icon, res.color);
+        showToast(`Icon generated: ${res.icon}`);
+      }
+    } catch (err) {
+      showToast('Icon generation error: ' + err.message);
+    } finally {
+      generateIconBtn.removeAttribute('loading');
+      generateIconBtn.disabled = false;
+    }
+  });
 }
 
 function openWorldEditor(worldId) {
@@ -232,6 +246,24 @@ function openWorldEditor(worldId) {
   document.getElementById('world-editor-dialog').open = true;
 }
 
+function updateIconPreview(iconName, colorHex) {
+  const container = document.getElementById('world-icon-preview-container');
+  const iconEl = document.getElementById('world-icon-preview-icon');
+  const boxEl = document.getElementById('world-icon-preview-box');
+
+  if (!iconName) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+
+  const icon = iconName;
+  const color = colorHex || '#6750A4';
+
+  if (iconEl) iconEl.setAttribute('name', icon);
+  if (boxEl) boxEl.style.backgroundColor = color;
+  if (container) container.style.display = 'flex';
+}
+
 function populateEditorForm(world) {
   document.getElementById('editor-dialog-headline').textContent = world.name ? `Editing: ${world.name}` : 'World Studio';
   document.getElementById('world-name-input').value = world.name || '';
@@ -239,8 +271,9 @@ function populateEditorForm(world) {
   document.getElementById('world-tone-input').value = world.tone || '';
   document.getElementById('world-desc-input').value = world.description || '';
   document.getElementById('world-setting-input').value = world.setting || '';
-  document.getElementById('world-color-input').value = world.coverColor || '#6750A4';
-  document.getElementById('world-icon-input').value = world.coverIcon || 'fort';
+
+  // Update Icon preview
+  updateIconPreview(world.coverIcon, world.coverColor);
 
   // Populate Logic Rules
   const logicContainer = document.getElementById('logic-rules-list');
@@ -411,8 +444,8 @@ async function saveCurrentWorldForm() {
     tone: document.getElementById('world-tone-input').value.trim(),
     description: document.getElementById('world-desc-input').value.trim(),
     setting: document.getElementById('world-setting-input').value.trim(),
-    coverColor: document.getElementById('world-color-input').value || '#6750A4',
-    coverIcon: document.getElementById('world-icon-input').value || 'fort',
+    coverColor: currentEditingWorld.coverColor || '#6750A4',
+    coverIcon: currentEditingWorld.coverIcon || 'public',
     logic,
   };
 

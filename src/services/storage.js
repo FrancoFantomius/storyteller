@@ -11,7 +11,7 @@ export function getSystemTheme() {
 export const DEFAULT_SETTINGS = {
   llmProvider: 'llamacpp', // 'llamacpp' | 'simulation'
   llamaCppHost: 'http://localhost:8080',
-  diffusersHost: 'http://localhost:8001',
+  diffusersHost: '', // empty for in-process backend server
   imageProvider: 'diffusers', // 'diffusers' | 'procedural' | 'none'
   diffusersSteps: 4,
   useSimulationFallback: true,

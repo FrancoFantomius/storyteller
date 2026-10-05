@@ -1,6 +1,6 @@
-# Docker AMD GPU (ROCm) Passthrough Guide: llama.cpp & Diffusers
+# Docker AMD GPU (ROCm) Passthrough Guide: llama.cpp & Storyteller
 
-This guide explains how to run **Storyteller** with **llama.cpp** (for LLM narrative generation) and **HuggingFace Diffusers** (for AI scene illustration) inside Docker containers with your **AMD Radeon GPU passed through** via **ROCm (Radeon Open Compute)**.
+This guide explains how to run **Storyteller** with **llama.cpp** (for LLM narrative generation) and in-process **Diffusers** (for AI scene illustration) inside Docker containers with your **AMD Radeon GPU passed through** via **ROCm (Radeon Open Compute)**.
 
 ---
 
@@ -10,9 +10,12 @@ This guide explains how to run **Storyteller** with **llama.cpp** (for LLM narra
 ┌─────────────────────────────────────────────────────────────┐
 │                    Storyteller System                       │
 ├───────────────────────────────┬─────────────────────────────┤
-│ 1. Storyteller App (Port 8000)│ FastAPI Fullstack & UI      │
+│ 1. Storyteller App (Port 8000)│ FastAPI Fullstack Server    │
+│                               │ - UI & Static Files         │
+│                               │ - Worlds & Campaigns REST   │
+│                               │ - In-Process Diffusers Art  │
+├───────────────────────────────┼─────────────────────────────┤
 │ 2. llama.cpp Server (Port 8080)│ GGUF LLM Text Generation    │
-│ 3. Diffusers Server (Port 8001)│ Stable Diffusion Scene Art  │
 ├───────────────────────────────┴─────────────────────────────┤
 │                   AMD GPU (ROCm / HIP)                      │
 │      Device Passthrough: /dev/kfd & /dev/dri                │
@@ -75,7 +78,7 @@ Download any `.gguf` model (e.g. from HuggingFace `bartowski/Meta-Llama-3.1-8B-I
 ```
 
 ### 2. Configure Diffusers Model
-By default, the Diffusers service uses `stabilityai/sd-turbo` (ultra-fast 1 to 4 step generation) and caches models in `./hf_cache`.
+By default, the server uses `stabilityai/sd-turbo` (ultra-fast 1 to 4 step generation) stored in `./models/diffusers/`.
 You can also change `DIFFUSERS_MODEL_ID` in `.env` to:
 - `runwayml/stable-diffusion-v1-5`
 - `stabilityai/sdxl-turbo`
@@ -93,14 +96,14 @@ You can also change `DIFFUSERS_MODEL_ID` in `.env` to:
 
 2. Start the stack:
    ```bash
-   docker compose up --build
+   docker compose up -d
    ```
 
 3. Open your browser and go to:
    - **Storyteller UI**: `http://localhost:8000`
    - **Settings Page**: `http://localhost:8000/settings.html`
    - **llama.cpp Health**: `http://localhost:8080/health`
-   - **Diffusers Health**: `http://localhost:8001/health`
+   - **Diffusers Health**: `http://localhost:8000/health`
 
 ---
 
@@ -122,8 +125,8 @@ services:
     security_opt:
       - seccomp:unconfined
 
-  diffusers:
-    build: ./services/diffusers
+  storyteller:
+    image: ghcr.io/francofantomius/storyteller:latest
     environment:
       - HSA_OVERRIDE_GFX_VERSION=11.0.0
       - HIP_VISIBLE_DEVICES=0
@@ -141,9 +144,9 @@ services:
 
 ## 7. Troubleshooting & Verification
 
-### Check GPU Detection in Diffusers:
+### Check GPU Detection in Storyteller App:
 ```bash
-docker exec -it storyteller-diffusers python3 -c "import torch; print('CUDA/ROCm Available:', torch.cuda.is_available(), 'Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+docker exec -it storyteller-app python3 -c "import torch; print('CUDA/ROCm Available:', torch.cuda.is_available(), 'Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 ```
 
 ### Check llama.cpp ROCm Acceleration:

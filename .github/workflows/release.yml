@@ -75,17 +75,6 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.name }}:v${{ steps.check_version.outputs.version }}
             ghcr.io/${{ steps.repo.outputs.name }}:latest
 
-      - name: Build and push Diffusers image
-        if: steps.check_version.outputs.changed == 'true'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./services/diffusers
-          file: ./services/diffusers/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}-diffusers:v${{ steps.check_version.outputs.version }}
-            ghcr.io/${{ steps.repo.outputs.name }}-diffusers:latest
-
       - name: Create GitHub Release and generate release notes
         if: steps.check_version.outputs.changed == 'true'
         env:
@@ -94,4 +83,3 @@ jobs:
           gh release create "v${{ steps.check_version.outputs.version }}" \
             --title "v${{ steps.check_version.outputs.version }}" \
             --generate-notes
-

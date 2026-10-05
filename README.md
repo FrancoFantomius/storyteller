@@ -4,10 +4,9 @@ Storyteller is an interactive storytelling platform and choose-your-own-adventur
 
 ## Overview
 
-The application is composed of three primary services:
-1. **Frontend**: Single-page application built with Vite and Material Design 3 Web Components (`@francofantomius/material-components`).
-2. **Backend**: FastAPI Python server managing campaigns, world definitions, prompt assembly, and inference routing.
-3. **Inference Services**: Local LLM inference via the dedicated LLM backend (llama.cpp server), along with local image generation via a PyTorch Diffusers microservice.
+The application is structured into a streamlined architecture:
+1. **Storyteller Unified Server (Port 8000)**: Single FastAPI Python server hosting the Vite-built Material Design 3 frontend (`@francofantomius/material-components`), REST APIs for worlds and campaigns, prompt assembly, and in-process Diffusers image generation.
+2. **LLM Inference Server (Port 8080)**: llama.cpp server for local GGUF text generation.
 
 ## Features
 
@@ -29,7 +28,7 @@ The application is composed of three primary services:
 
 ### Local Inference Support
 - **Text Generation**: Native support for OpenAI-compatible `/v1/chat/completions` endpoints (llama.cpp server) with automatic Hugging Face model downloading.
-- **Image Generation**: Dedicated Stable Diffusion service supporting AMD ROCm GPU acceleration, Hugging Face caching, and CPU fallback.
+- **Image Generation**: In-process Stable Diffusion engine supporting AMD ROCm / CUDA GPU acceleration, Hugging Face caching, and CPU fallback.
 
 ## Quickstart with Docker (Recommended)
 
@@ -54,7 +53,7 @@ docker compose up -d
 Visit [http://localhost:8000](http://localhost:8000) in your web browser.
 
 > [!NOTE]
-> **Data Persistence**: All worlds, campaigns, and generated images are automatically saved to `./data/` in your directory. Downloaded models are cached in `./models/llm/` and `./hf_cache/`, so they will not be re-downloaded on future restarts.
+> **Data Persistence**: All worlds, campaigns, and generated images are automatically saved to `./data/` in your directory. Downloaded models are stored in `./models/llm/` and `./models/diffusers/`, so they will not be re-downloaded on future restarts.
 
 ---
 
@@ -84,27 +83,19 @@ For developers contributing to the codebase:
 python download_models.py --all
 ```
 
-### 2. Backend Server
+### 2. Storyteller Server (Single Server)
 ```bash
 pip install -r requirements.txt
 python server/server.py
 ```
-The FastAPI backend will run on `http://localhost:8000`.
+The FastAPI backend and frontend will run on `http://localhost:8000`.
 
-### 3. Frontend Development Server
+### 3. Frontend Development Server (Optional for Live Reload)
 ```bash
 npm install
 npm run dev
 ```
 The Vite dev server will run on `http://localhost:5173` with API calls automatically proxied to the backend.
-
-### 4. Diffusers Microservice (Optional)
-```bash
-cd services/diffusers
-pip install -r requirements.txt
-python server.py
-```
-The Diffusers microservice will run on `http://localhost:8001`.
 
 ---
 
@@ -113,9 +104,8 @@ The Diffusers microservice will run on `http://localhost:8001`.
 Automated releases are managed through GitHub Actions (`.github/workflows/release.yml`).
 
 When a commit pushed to `main` updates the version in `package.json`:
-1. The workflow builds and publishes container images to GitHub Container Registry (`ghcr.io`):
+1. The workflow builds and publishes the container image to GitHub Container Registry (`ghcr.io`):
    - `ghcr.io/francofantomius/storyteller:latest`
-   - `ghcr.io/francofantomius/storyteller-diffusers:latest`
 2. A GitHub Release is created with release notes and downloadable assets.
 
 ## License

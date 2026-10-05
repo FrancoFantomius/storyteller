@@ -41,37 +41,7 @@ services:
       --cont-batching
 
   # =========================================================================
-  # 2. Diffusers Server (ROCm PyTorch / AMD GPU Accelerated)
-  # Automatically downloads the diffusion model from HuggingFace on first start
-  # =========================================================================
-  diffusers:
-    image: ghcr.io/francofantomius/storyteller-diffusers:latest
-    container_name: storyteller-diffusers
-    restart: unless-stopped
-    ports:
-      - "8001:8001"
-    volumes:
-      # Mount host diffusers models and HuggingFace cache
-      - ./models/diffusers:/models
-      - ./hf_cache:/root/.cache/huggingface
-    environment:
-      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION:-11.0.0}
-      - HIP_VISIBLE_DEVICES=0
-      - DIFFUSERS_MODEL_ID=${DIFFUSERS_MODEL_ID:-stabilityai/sd-turbo}
-      - HF_TOKEN=${HF_TOKEN:-}
-      - PORT=8001
-    # AMD ROCm GPU Passthrough
-    devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
-    group_add:
-      - video
-      - render
-    security_opt:
-      - seccomp:unconfined
-
-  # =========================================================================
-  # 3. Storyteller Fullstack Application
+  # 2. Storyteller Fullstack Unified Server (Frontend, REST APIs & Diffusers AI)
   # =========================================================================
   storyteller:
     image: ghcr.io/francofantomius/storyteller:latest
@@ -82,11 +52,23 @@ services:
     volumes:
       # Mount single unified data folder for worlds, campaigns, and generated images
       - ./data:/app/data
+      - ./models:/app/models
+      - ./models/diffusers:/models
     environment:
       - PORT=8000
       - DATA_DIR=/app/data
       - LLM_HOST=http://llama-cpp:8080
-      - DIFFUSERS_HOST=http://diffusers:8001
+      - DIFFUSERS_MODEL_ID=${DIFFUSERS_MODEL_ID:-stabilityai/sd-turbo}
+      - HF_TOKEN=${HF_TOKEN:-}
+      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION:-11.0.0}
+      - HIP_VISIBLE_DEVICES=0
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
     depends_on:
       - llama-cpp
-      - diffusers

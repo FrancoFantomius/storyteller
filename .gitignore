@@ -12,7 +12,6 @@ dist-ssr/
 
 # AI Models
 models/
-hf_cache/
 
 # Python Environments & Bytecode
 __pycache__/

@@ -621,3 +621,12 @@ h3.title-small {
   width: 100%;
   display: block;
 }
+
+/* Responsive Dialog & Form Elements */
+md-dialog {
+  max-width: min(92vw, 640px) !important;
+}
+
+md-text-field {
+  max-width: 100%;
+}
