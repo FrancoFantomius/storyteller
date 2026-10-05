@@ -60,8 +60,7 @@
               </div>
               <div class="setting-control" style="margin-top: 6px;">
                 <md-segmented-button-set id="llm-provider-segmented-set">
-                  <md-segmented-button value="llamacpp" label="llama.cpp (ROCm)" icon="speed" selected></md-segmented-button>
-                  <md-segmented-button value="ollama" label="Ollama" icon="neurology"></md-segmented-button>
+                  <md-segmented-button value="llamacpp" label="LLM Backend" icon="speed" selected></md-segmented-button>
                   <md-segmented-button value="simulation" label="Simulation" icon="offline_bolt"></md-segmented-button>
                 </md-segmented-button-set>
               </div>
@@ -73,35 +72,13 @@
                 <md-text-field
                   id="llamacpp-host-input"
                   variant="outlined"
-                  label="llama.cpp Server Host"
+                  label="LLM Server Host"
                   value="http://localhost:8080"
                   supporting-text="Default Docker port is 8080 (supports /v1/chat/completions and ROCm GPU)"
                   style="flex: 1;"
                 ></md-text-field>
                 <div id="llamacpp-status-badge" style="padding-top: 4px;"></div>
               </div>
-            </div>
-
-            <!-- Ollama Configuration -->
-            <div id="ollama-config-card" style="display: none; flex-direction: column; gap: 10px;">
-              <div style="display: flex; gap: 12px; align-items: center;">
-                <md-text-field
-                  id="ollama-host-input"
-                  variant="outlined"
-                  label="Ollama Server Host"
-                  value="http://localhost:11434"
-                  supporting-text="Default Ollama host"
-                  style="flex: 1;"
-                ></md-text-field>
-                <div id="ollama-status-badge" style="padding-top: 4px;"></div>
-              </div>
-              <md-text-field
-                id="ollama-model-input"
-                variant="outlined"
-                label="Ollama Model Tag"
-                value="llama3:latest"
-                supporting-text="e.g. llama3:8b, mistral, qwen2.5"
-              ></md-text-field>
             </div>
 
             <md-divider></md-divider>

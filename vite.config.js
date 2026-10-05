@@ -230,24 +230,6 @@ function apiPlugin() {
           }
         }
 
-        // --- OLLAMA PROXY & STATUS CHECK ---
-        if (pathname === '/api/ollama/status' && method === 'GET') {
-          const ollamaHost = url.searchParams.get('host') || 'http://localhost:11434';
-          try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 2500);
-            const ollamaRes = await fetch(`${ollamaHost}/api/tags`, { signal: controller.signal });
-            clearTimeout(timeout);
-            if (ollamaRes.ok) {
-              const data = await ollamaRes.json();
-              return sendJson(res, 200, { online: true, models: data.models || [] });
-            }
-            return sendJson(res, 200, { online: false, error: 'Non-200 status from Ollama' });
-          } catch (err) {
-            return sendJson(res, 200, { online: false, error: err.message });
-          }
-        }
-
         next();
       });
     },

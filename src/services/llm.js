@@ -25,7 +25,7 @@ export async function generateStoryTurn({ world, campaign, userInput, activeChar
         userInput: userInput,
         campaignHistory: (campaign.history || []).slice(-8),
         provider: provider,
-        host: provider === 'llamacpp' ? settings.llamaCppHost : settings.ollamaHost,
+        host: settings.llamaCppHost || 'http://localhost:8080',
         temperature: settings.temperature || 0.7,
         topP: settings.topP || 0.9,
         maxTokens: settings.maxTokens || 600,
@@ -52,23 +52,13 @@ export async function generateStoryTurn({ world, campaign, userInput, activeChar
           const trimmed = line.trim();
           if (!trimmed) continue;
 
-          // Handle SSE stream (from llama.cpp or backend SSE)
+          // Handle SSE stream (from LLM backend / OpenAI SSE)
           if (trimmed.startsWith('data: ')) {
             const dataStr = trimmed.slice(6);
             if (dataStr === '[DONE]') continue;
             try {
               const parsed = JSON.parse(dataStr);
               const delta = parsed.choices?.[0]?.delta?.content || parsed.message?.content || parsed.response;
-              if (delta) {
-                fullGeneratedText += delta;
-                if (onToken) onToken(delta, fullGeneratedText);
-              }
-            } catch (e) {}
-          } else {
-            // Handle ndjson stream (from Ollama)
-            try {
-              const parsed = JSON.parse(trimmed);
-              const delta = parsed.message?.content || parsed.response;
               if (delta) {
                 fullGeneratedText += delta;
                 if (onToken) onToken(delta, fullGeneratedText);
@@ -206,53 +196,30 @@ export async function generateWorldFromPrompt(prompt) {
 }
 Return ONLY valid JSON without markdown wrapping.`;
 
-    const provider = settings.llmProvider || 'llamacpp';
-    if (provider === 'llamacpp') {
-      const host = (settings.llamaCppHost || 'http://localhost:8080').replace(/\/$/, '');
-      const res = await fetch(`${host}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Create a rich world from this concept: "${prompt}"` },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.7,
-        }),
-        signal: controller.signal,
-      });
+    const host = (settings.llamaCppHost || 'http://localhost:8080').replace(/\/$/, '');
+    const res = await fetch(`${host}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Create a rich world from this concept: "${prompt}"` },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    });
 
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) {
-          try {
-            generatedData = JSON.parse(content);
-          } catch (e) {
-            const clean = content.replace(/```json/g, '').replace(/```/g, '').trim();
-            generatedData = JSON.parse(clean);
-          }
-        }
-      }
-    } else {
-      const res = await fetch(`${settings.ollamaHost}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: settings.ollamaModel || 'llama3:latest',
-          system: systemPrompt,
-          prompt: `Create a rich world from this concept: "${prompt}"`,
-          stream: false,
-          format: 'json',
-        }),
-        signal: controller.signal,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.response) {
-          generatedData = JSON.parse(data.response);
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) {
+        try {
+          generatedData = JSON.parse(content);
+        } catch (e) {
+          const clean = content.replace(/```json/g, '').replace(/```/g, '').trim();
+          generatedData = JSON.parse(clean);
         }
       }
     }

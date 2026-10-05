@@ -37,12 +37,6 @@ function populateSettingsForm() {
   const llamacppInput = document.getElementById('llamacpp-host-input');
   if (llamacppInput) llamacppInput.value = settings.llamaCppHost || 'http://localhost:8080';
 
-  const ollamaHostInput = document.getElementById('ollama-host-input');
-  if (ollamaHostInput) ollamaHostInput.value = settings.ollamaHost || 'http://localhost:11434';
-
-  const ollamaModelInput = document.getElementById('ollama-model-input');
-  if (ollamaModelInput) ollamaModelInput.value = settings.ollamaModel || 'dolphin-mistral:7b';
-
   // 2. Image Provider Segmented Set
   const currentImgProvider = settings.imageProvider || (settings.generateArt !== false ? 'diffusers' : 'none');
   const imgButtons = document.querySelectorAll('#image-provider-segmented-set md-segmented-button');
@@ -83,10 +77,7 @@ function populateSettingsForm() {
 
 function toggleLlmCards(provider) {
   const llamaCard = document.getElementById('llamacpp-config-card');
-  const ollamaCard = document.getElementById('ollama-config-card');
-
   if (llamaCard) llamaCard.style.display = provider === 'llamacpp' ? 'flex' : 'none';
-  if (ollamaCard) ollamaCard.style.display = provider === 'ollama' ? 'flex' : 'none';
 }
 
 function toggleDiffusersCard(provider) {
@@ -98,16 +89,13 @@ async function checkAiEnginesHealth() {
   const settings = getSettings();
   const llamaBadge = document.getElementById('llamacpp-status-badge');
   const diffusersBadge = document.getElementById('diffusers-status-badge');
-  const ollamaBadge = document.getElementById('ollama-status-badge');
 
   if (llamaBadge) llamaBadge.innerHTML = `<md-chip label="Checking..." icon="sync"></md-chip>`;
   if (diffusersBadge) diffusersBadge.innerHTML = `<md-chip label="Checking..." icon="sync"></md-chip>`;
-  if (ollamaBadge) ollamaBadge.innerHTML = `<md-chip label="Checking..." icon="sync"></md-chip>`;
 
   const status = await checkAllAiStatus({
     llamacppHost: settings.llamaCppHost || 'http://localhost:8080',
     diffusersHost: settings.diffusersHost || 'http://localhost:8001',
-    ollamaHost: settings.ollamaHost || 'http://localhost:11434',
   });
 
   if (llamaBadge) {
@@ -124,15 +112,6 @@ async function checkAiEnginesHealth() {
       diffusersBadge.innerHTML = `<md-chip label="Online: ${gpuName}" icon="check_circle" style="color: #1b873f;"></md-chip>`;
     } else {
       diffusersBadge.innerHTML = `<md-chip label="Offline / Unreachable" icon="error" style="color: var(--md-sys-color-error);"></md-chip>`;
-    }
-  }
-
-  if (ollamaBadge) {
-    if (status.ollama?.online) {
-      const count = status.ollama?.info?.models?.length || 0;
-      ollamaBadge.innerHTML = `<md-chip label="Online (${count} models)" icon="check_circle" style="color: #1b873f;"></md-chip>`;
-    } else {
-      ollamaBadge.innerHTML = `<md-chip label="Offline" icon="error" style="color: var(--md-sys-color-error);"></md-chip>`;
     }
   }
 }
@@ -196,8 +175,6 @@ function setupEventListeners() {
   // Auto-save on input and slider changes
   [
     'llamacpp-host-input',
-    'ollama-host-input',
-    'ollama-model-input',
     'diffusers-host-input',
     'diffusers-steps-slider',
     'quick-sugg-switch',
@@ -243,8 +220,6 @@ function saveCurrentSettings(showToastMessage = true) {
   const updated = {
     llmProvider: chosenLlm,
     llamaCppHost: document.getElementById('llamacpp-host-input')?.value?.trim() || 'http://localhost:8080',
-    ollamaHost: document.getElementById('ollama-host-input')?.value?.trim() || 'http://localhost:11434',
-    ollamaModel: document.getElementById('ollama-model-input')?.value?.trim() || 'llama3:latest',
     imageProvider: chosenImg,
     generateArt: chosenImg !== 'none',
     diffusersHost: document.getElementById('diffusers-host-input')?.value?.trim() || 'http://localhost:8001',

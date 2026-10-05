@@ -82,17 +82,6 @@ def download_llm_model(model_filename: str, download_url: str):
     print(f"\n=== Downloading Text LLM Model ({model_filename}) ===")
     download_file_with_progress(download_url, target_path)
 
-def pull_ollama_model(model_tag: str):
-    """Pulls text model via Ollama CLI."""
-    print(f"\n=== Pulling Ollama Model ({model_tag}) ===")
-    try:
-        subprocess.run(["ollama", "pull", model_tag], check=True)
-        print(f"[+] Successfully pulled {model_tag} via Ollama.")
-    except FileNotFoundError:
-        print(f"[-] 'ollama' command not found. Please ensure Ollama is installed and running.")
-    except Exception as e:
-        print(f"[-] Failed to pull {model_tag} with Ollama: {e}")
-
 def download_diffusers_model(model_id: str):
     """Pre-caches HuggingFace Diffusers model using huggingface_hub or diffusers."""
     HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -113,7 +102,6 @@ def main():
     parser.add_argument("--all", action="store_true", help="Download all models (LLM and Diffusers)")
     parser.add_argument("--llm", action="store_true", help="Download GGUF LLM model")
     parser.add_argument("--diffusers", action="store_true", help="Download Diffusers model")
-    parser.add_argument("--ollama", action="store_true", help="Pull Ollama model")
     args = parser.parse_args()
 
     env_vars = load_env_file(ROOT_DIR / ".env")
@@ -121,7 +109,6 @@ def main():
         env_vars = load_env_file(ROOT_DIR / ".env.example")
 
     # Defaults
-    ollama_model = os.environ.get("OLLAMA_MODEL", env_vars.get("OLLAMA_MODEL", "dolphin-mistral:7b"))
     llm_filename = os.environ.get("LLAMA_MODEL_FILENAME", env_vars.get("LLAMA_MODEL_FILENAME", "dolphin-2.8-mistral-7b-v02.Q4_K_M.gguf"))
     llm_download_url = os.environ.get(
         "LLAMA_MODEL_DOWNLOAD_URL",
@@ -133,7 +120,7 @@ def main():
     diffusers_model_id = os.environ.get("DIFFUSERS_MODEL_ID", env_vars.get("DIFFUSERS_MODEL_ID", "stabilityai/sd-turbo"))
 
     # If no flags passed, default to --all
-    if not (args.all or args.llm or args.diffusers or args.ollama):
+    if not (args.all or args.llm or args.diffusers):
         args.all = True
 
     if args.all or args.llm:
@@ -141,9 +128,6 @@ def main():
 
     if args.all or args.diffusers:
         download_diffusers_model(diffusers_model_id)
-
-    if args.ollama:
-        pull_ollama_model(ollama_model)
 
     print("\n[✔] Setup completed.")
 

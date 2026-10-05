@@ -9,10 +9,8 @@ export function getSystemTheme() {
 }
 
 export const DEFAULT_SETTINGS = {
-  llmProvider: 'llamacpp', // 'llamacpp' | 'ollama' | 'simulation'
+  llmProvider: 'llamacpp', // 'llamacpp' | 'simulation'
   llamaCppHost: 'http://localhost:8080',
-  ollamaHost: 'http://localhost:11434',
-  ollamaModel: 'dolphin-mistral:7b',
   diffusersHost: 'http://localhost:8001',
   imageProvider: 'diffusers', // 'diffusers' | 'procedural' | 'none'
   diffusersSteps: 4,

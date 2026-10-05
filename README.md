@@ -7,7 +7,7 @@ Storyteller is an interactive storytelling platform and choose-your-own-adventur
 The application is composed of three primary services:
 1. **Frontend**: Single-page application built with Vite and Material Design 3 Web Components (`@francofantomius/material-components`).
 2. **Backend**: FastAPI Python server managing campaigns, world definitions, prompt assembly, and inference routing.
-3. **Inference Services**: Local LLM inference via llama.cpp server or Ollama, along with local image generation via a PyTorch Diffusers microservice.
+3. **Inference Services**: Local LLM inference via the dedicated LLM backend (llama.cpp server), along with local image generation via a PyTorch Diffusers microservice.
 
 ## Features
 
@@ -28,7 +28,7 @@ The application is composed of three primary services:
 - **Import and Export**: JSON-based serialization for backing up and sharing worlds and campaigns.
 
 ### Local Inference Support
-- **Text Generation**: Native support for OpenAI-compatible `/v1/chat/completions` endpoints (llama.cpp server) and Ollama HTTP APIs.
+- **Text Generation**: Native support for OpenAI-compatible `/v1/chat/completions` endpoints (llama.cpp server).
 - **Image Generation**: Dedicated Stable Diffusion service supporting AMD ROCm GPU acceleration and CPU fallback.
 
 ## Project Structure
@@ -63,35 +63,69 @@ The application is composed of three primary services:
 ## Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose
-- Node.js 20+ and npm (for local frontend development)
-- Python 3.10+ (for local backend development)
-- (Optional) AMD ROCm or NVIDIA GPU for hardware-accelerated inference
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/)
+- Python 3.10+ (for model downloading script) or manual download of your preferred GGUF models
+- (Optional) AMD ROCm or NVIDIA GPU for hardware-accelerated LLM and image inference
 
-### Running with Docker Compose
+---
 
-1. Copy the sample environment file:
-   ```bash
-   cp .env.example .env
-   ```
+### Running with Docker (Recommended)
 
-2. Download the models on demand to your host machine:
-   ```bash
-   python download_models.py --all
-   ```
-   *(Or for Ollama: `ollama pull dolphin-mistral:7b`)*
+Pre-built multi-arch Docker images are published automatically to the **GitHub Container Registry (GHCR)** with each [GitHub Release](https://github.com/francofantomius/storyteller/releases):
+- Application (Frontend + FastAPI backend): `ghcr.io/francofantomius/storyteller:latest`
+- Diffusers Microservice: `ghcr.io/francofantomius/storyteller-diffusers:latest`
+- LLM Backend: `ghcr.io/ggerganov/llama.cpp:server-rocm`
 
-3. Start all services:
-   ```bash
-   docker compose up --build
-   ```
+#### 1. Obtain Configuration Files
+You can clone the repository or simply download [`docker-compose.yml`](file:///c:/Users/franc/Programmazione/storyteller/docker-compose.yml) and [`.env.example`](file:///c:/Users/franc/Programmazione/storyteller/.env.example) from the latest release:
 
-4. Open `http://localhost:8000` in a web browser.
+```bash
+# Clone the repository
+git clone https://github.com/francofantomius/storyteller.git
+cd storyteller
+
+# Create your local environment file
+cp .env.example .env
+```
+
+#### 2. Download Model Weights
+Run the included model downloader script to fetch the default GGUF text model and Diffusers pipeline:
+
+```bash
+python download_models.py --all
+```
+
+> [!TIP]
+> You can also manually drop any OpenAI-compatible GGUF model into `./models/llm/` and configure its filename via `LLAMA_MODEL_FILENAME` in `.env`.
+
+#### 3. Start the Services
+
+Pull the pre-built images from GitHub Releases / GHCR and launch the stack:
+
+```bash
+# Pull official images from GHCR
+docker compose pull
+
+# Launch containers in background
+docker compose up -d
+```
+
+If you prefer building images locally from source instead:
+```bash
+docker compose up --build -d
+```
+
+#### 4. Access the Application
+Open [http://localhost:8000](http://localhost:8000) in your web browser.
 
 > [!NOTE]
-> All world data (`server/worlds/`), saved campaigns (`server/campaigns/`), generated images (`server/generated_images/`), and model weights (`models/` & `hf_cache/`) are mounted from the user machine outside Docker so all changes and downloads persist on host.
+> **Data Persistence**: All worlds (`./server/worlds/`), campaign saves (`./server/campaigns/`), generated images (`./server/generated_images/`), and downloaded models (`./models/`, `./hf_cache/`) are mounted directly from your host directory, ensuring all your data persists across container restarts and image updates.
 
-### Manual Development Setup
+---
+
+### Manual Development Setup (Without Docker)
+
+If you want to develop on the codebase directly on your machine without Docker:
 
 #### 1. Download Models
 ```bash
@@ -103,14 +137,14 @@ python download_models.py --all
 pip install -r requirements.txt
 python server/server.py
 ```
-The backend starts on `http://localhost:8000`.
+The FastAPI backend will start on `http://localhost:8000`.
 
 #### 3. Frontend Development Server
 ```bash
 npm install
 npm run dev
 ```
-The Vite development server runs on `http://localhost:5173` with API requests proxied to the backend.
+The Vite development server will run on `http://localhost:5173` with API calls automatically proxied to the backend.
 
 #### 4. Image Generation Service (Optional)
 ```bash
@@ -118,7 +152,7 @@ cd services/diffusers
 pip install -r requirements.txt
 python server.py
 ```
-The diffusers service runs on `http://localhost:8001`.
+The Diffusers microservice will run on `http://localhost:8001`.
 
 ## Configuration
 
@@ -129,13 +163,10 @@ Environment variables can be defined in `.env` or passed via Docker Compose:
 | `PORT` | HTTP port for the main application server | `8000` |
 | `LLM_HOST` | URL of the OpenAI-compatible or llama.cpp endpoint | `http://llama-cpp:8080` |
 | `DIFFUSERS_HOST` | URL of the diffusers image generation microservice | `http://diffusers:8001` |
-| `OLLAMA_MODEL` | Default model tag for Ollama | `dolphin-mistral:7b` |
 | `LLAMA_MODEL_FILENAME` | File name of the GGUF model inside `./models/llm/` | `dolphin-2.8-mistral-7b-v02.Q4_K_M.gguf` |
 | `DIFFUSERS_MODEL_ID` | HuggingFace model repo or local directory for Diffusers | `stabilityai/sd-turbo` |
-
 | `LLAMA_CTX_SIZE` | Context window length for llama.cpp | `4096` |
 | `LLAMA_N_GPU_LAYERS` | Number of layers to offload to GPU in llama.cpp | `99` |
-| `DIFFUSERS_MODEL_ID` | Hugging Face repository ID or path for image generation | `stabilityai/sd-turbo` |
 | `HSA_OVERRIDE_GFX_VERSION` | ROCm GPU target architecture override | `11.0.0` |
 
 ## CI/CD and Releases

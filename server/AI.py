@@ -20,7 +20,6 @@ SYSTEM_PROMPT_FILE = ROOT_DIR / "system.txt"
 # Default environment hosts (configurable for Docker or host execution)
 DEFAULT_LLAMACPP_HOST = os.environ.get("LLM_HOST", "http://localhost:8080")
 DEFAULT_DIFFUSERS_HOST = os.environ.get("DIFFUSERS_HOST", "http://localhost:8001")
-DEFAULT_OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 # Ensure generated images directory exists
 GENERATED_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,13 +34,11 @@ ai_router = APIRouter()
 async def check_all_ai_status(
     llamacpp_host: str = Query(default=DEFAULT_LLAMACPP_HOST),
     diffusers_host: str = Query(default=DEFAULT_DIFFUSERS_HOST),
-    ollama_host: str = Query(default=DEFAULT_OLLAMA_HOST),
 ):
     """Checks the health and status of all configured AI inference engines."""
     status_result = {
         "llamacpp": {"online": False, "host": llamacpp_host, "info": None},
         "diffusers": {"online": False, "host": diffusers_host, "info": None},
-        "ollama": {"online": False, "host": ollama_host, "info": None},
     }
 
     async with httpx.AsyncClient(timeout=2.5) as client:
@@ -64,14 +61,6 @@ async def check_all_ai_status(
                 status_result["diffusers"] = {"online": True, "host": diffusers_host, "info": resp.json()}
         except Exception as e:
             status_result["diffusers"]["error"] = str(e)
-
-        # Check Ollama
-        try:
-            resp = await client.get(f"{ollama_host.rstrip('/')}/api/tags")
-            if resp.status_code == 200:
-                status_result["ollama"] = {"online": True, "host": ollama_host, "info": resp.json()}
-        except Exception as e:
-            status_result["ollama"]["error"] = str(e)
 
     return status_result
 
@@ -101,19 +90,6 @@ async def check_diffusers_status(host: str = Query(default=DEFAULT_DIFFUSERS_HOS
             return {"online": False, "error": f"Status code {resp.status_code}"}
     except Exception as err:
         return {"online": False, "error": str(err)}
-
-@ai_router.get("/api/ollama/status")
-async def check_ollama_status(host: str = Query(default=DEFAULT_OLLAMA_HOST)):
-    """Check connection to Ollama and fetch list of available models."""
-    try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            resp = await client.get(f"{host.rstrip('/')}/api/tags")
-            if resp.status_code == 200:
-                data = resp.json()
-                return {"online": True, "models": data.get("models", [])}
-            return {"online": False, "error": f"Status code {resp.status_code}"}
-    except Exception as err:
-        return {"online": False, "error": str(err), "models": []}
 
 # ---------------------------------------------------------------------------
 # System Prompt & Story Turn Generation (Driven by system.txt)
@@ -220,7 +196,7 @@ async def generate_story_turn_endpoint(payload: StoryTurnPayload):
     Unified story turn generation endpoint:
     1. Loads system.txt and builds dynamic system prompt with lore and character data.
     2. Packages conversation history.
-    3. Streams response from llama.cpp or Ollama to the browser via SSE.
+    3. Streams response from the LLM backend to the browser via SSE.
     """
     system_prompt = build_dynamic_system_prompt(
         world_data=payload.world,
@@ -244,32 +220,16 @@ async def generate_story_turn_endpoint(payload: StoryTurnPayload):
         {"role": "user", "content": formatted_user_prompt},
     ]
 
-    provider = payload.provider or "llamacpp"
-    if provider == "llamacpp" or provider == "openai":
-        target_host = payload.host or DEFAULT_LLAMACPP_HOST
-        target_url = f"{target_host.rstrip('/')}/v1/chat/completions"
-        req_body = {
-            "messages": messages,
-            "stream": True,
-            "temperature": payload.temperature,
-            "top_p": payload.topP,
-            "max_tokens": payload.maxTokens,
-        }
-        media_type = "text/event-stream"
-    else:
-        target_host = payload.host or DEFAULT_OLLAMA_HOST
-        target_url = f"{target_host.rstrip('/')}/api/chat"
-        req_body = {
-            "model": os.environ.get("OLLAMA_MODEL", "dolphin-mistral:7b"),
-            "messages": messages,
-            "stream": True,
-            "options": {
-                "temperature": payload.temperature,
-                "top_p": payload.topP,
-                "num_predict": payload.maxTokens,
-            },
-        }
-        media_type = "application/x-ndjson"
+    target_host = payload.host or DEFAULT_LLAMACPP_HOST
+    target_url = f"{target_host.rstrip('/')}/v1/chat/completions"
+    req_body = {
+        "messages": messages,
+        "stream": True,
+        "temperature": payload.temperature,
+        "top_p": payload.topP,
+        "max_tokens": payload.maxTokens,
+    }
+    media_type = "text/event-stream"
 
     async def stream_generator():
         try:
@@ -286,23 +246,16 @@ async def generate_story_turn_endpoint(payload: StoryTurnPayload):
 @ai_router.post("/api/ai/chat")
 async def ai_chat_proxy(
     request: Request,
-    provider: str = Query(default="llamacpp"),
     host: Optional[str] = Query(default=None),
 ):
     """
-    Unified streaming AI chat proxy for llama.cpp, Ollama, and compatible servers.
-    Supports both OpenAI format (/v1/chat/completions) used by llama.cpp and Ollama's native (/api/chat).
+    Unified streaming AI chat proxy for the LLM backend (/v1/chat/completions).
     """
     body = await request.json()
 
-    if provider == "llamacpp" or provider == "openai":
-        target_host = host or DEFAULT_LLAMACPP_HOST
-        target_url = f"{target_host.rstrip('/')}/v1/chat/completions"
-        media_type = "text/event-stream"
-    else:
-        target_host = host or DEFAULT_OLLAMA_HOST
-        target_url = f"{target_host.rstrip('/')}/api/chat"
-        media_type = "application/x-ndjson"
+    target_host = host or DEFAULT_LLAMACPP_HOST
+    target_url = f"{target_host.rstrip('/')}/v1/chat/completions"
+    media_type = "text/event-stream"
 
     async def stream_generator():
         try:

@@ -38,6 +38,7 @@ services:
   # 2. Diffusers Server (ROCm PyTorch / AMD GPU Accelerated)
   # =========================================================================
   diffusers:
+    image: ghcr.io/francofantomius/storyteller-diffusers:latest
     build:
       context: ./services/diffusers
       dockerfile: Dockerfile
@@ -68,6 +69,7 @@ services:
   # 3. Storyteller Fullstack Application
   # =========================================================================
   storyteller:
+    image: ghcr.io/francofantomius/storyteller:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -85,7 +87,6 @@ services:
       - PORT=8000
       - LLM_HOST=http://llama-cpp:8080
       - DIFFUSERS_HOST=http://diffusers:8001
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-dolphin-mistral:7b}
     depends_on:
       - llama-cpp
       - diffusers

@@ -15,7 +15,7 @@ import '@francofantomius/material-components/fab';
 import '@francofantomius/material-components/search-bar';
 import { setupNavigation, showToast } from '../components/nav-bar.js';
 import { fetchWorlds, fetchCampaigns, fetchCampaign, createCampaign, updateCampaign, deleteCampaign } from '../services/api.js';
-import { generateStoryTurn } from '../services/ollama.js';
+import { generateStoryTurn } from '../services/llm.js';
 import { generateSceneSVG, getSceneVisualHTML } from '../services/illustrations.js';
 import { getSettings } from '../services/storage.js';
 

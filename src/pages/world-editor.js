@@ -12,7 +12,7 @@ import '@francofantomius/material-components/badge';
 import '@francofantomius/material-components/tabs';
 import { setupNavigation, showToast } from '../components/nav-bar.js';
 import { fetchWorlds, createWorld, updateWorld, deleteWorld } from '../services/api.js';
-import { generateWorldFromPrompt } from '../services/ollama.js';
+import { generateWorldFromPrompt } from '../services/llm.js';
 
 let worlds = [];
 let currentEditingWorld = null;

@@ -80,16 +80,6 @@ export async function deleteCampaign(id) {
   return await res.json();
 }
 
-export async function checkOllamaStatus(host = 'http://localhost:11434') {
-  try {
-    const res = await fetch(`/api/ollama/status?host=${encodeURIComponent(host)}`);
-    if (!res.ok) return { online: false, models: [] };
-    return await res.json();
-  } catch (err) {
-    return { online: false, error: err.message, models: [] };
-  }
-}
-
 export async function checkLlamaCppStatus(host = 'http://localhost:8080') {
   try {
     const res = await fetch(`/api/llamacpp/status?host=${encodeURIComponent(host)}`);
@@ -114,7 +104,6 @@ export async function checkAllAiStatus(opts = {}) {
   const params = new URLSearchParams();
   if (opts.llamacppHost) params.set('llamacpp_host', opts.llamacppHost);
   if (opts.diffusersHost) params.set('diffusers_host', opts.diffusersHost);
-  if (opts.ollamaHost) params.set('ollama_host', opts.ollamaHost);
 
   try {
     const res = await fetch(`/api/ai/status?${params.toString()}`);
@@ -124,7 +113,6 @@ export async function checkAllAiStatus(opts = {}) {
     return {
       llamacpp: { online: false, error: err.message },
       diffusers: { online: false, error: err.message },
-      ollama: { online: false, error: err.message },
     };
   }
 }
